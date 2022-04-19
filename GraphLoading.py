@@ -2,7 +2,7 @@ import networkx as nx
 
 G = nx.Graph()
 
-with open("Cit-HepTh.txt") as file:
+with open("GRAPH_FILE.txt") as file:
     edge = file.readline()
     while edge != "":
         nodes = edge.replace("\n", "").split("\t")
