@@ -79,9 +79,9 @@ def stream_diam(G):
 
     return step
 
-DIRECTED = True
-file_name = "Cit-HepTh.txt"
-sep = "\t"
+DIRECTED = False
+file_name = "ca-sandi_auths.mtx"
+sep = " "
 SAMPLE = 0.8
 JOBS = 6
 
