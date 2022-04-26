@@ -1,13 +1,16 @@
 import networkx as nx
 
-G = nx.Graph()
-
-with open("GRAPH_FILE.txt") as file:
-    edge = file.readline()
-    while edge != "":
-        nodes = edge.replace("\n", "").split("\t")
-        G.add_edge(nodes[0], nodes[1])
+def load_node(file_name, directed, sep = "\t"):
+    if directed:
+        G = nx.DiGraph()
+    else:
+        G = nx.Graph()
+        
+    with open(file_name) as file:
         edge = file.readline()
+        while edge != "":
+            nodes = edge.replace("\n", "").split(sep)
+            G.add_edge(nodes[0], nodes[1])
+            edge = file.readline()
 
-print(G.number_of_edges())
-
+    return G
