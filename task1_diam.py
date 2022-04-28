@@ -20,14 +20,18 @@ def diameter(G, sample=None):
         udiam = 0
         clevel = [u]
         visited = [u]
+        old_visited = 1
         while len(visited) < n:
             nlevel = []
+            old_visited = len(visited)
             while(len(clevel) > 0):
                 c = clevel.pop()
                 for v in G[c]:
                     if v not in visited:
                         visited.append(v)
                         nlevel.append(v)
+            if old_visited == len(visited):
+              break
             clevel = nlevel
             udiam += 1
         if udiam > diam:
@@ -93,6 +97,8 @@ if __name__ == "__main__":
     if debug:
       if not DIRECTED:
         print(nx.number_connected_components(G))
+      else:
+        print(nx.is_strongly_connected(G))
       print(G.number_of_nodes())
       print(G.number_of_edges())
     start_time = time.time()
