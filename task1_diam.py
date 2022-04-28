@@ -18,14 +18,14 @@ def diameter(G, sample=None):
     for u in sample:
         udiam = 0
         clevel = [u]
-        visited = set(u)
+        visited = [u]
         while len(visited) < n:
             nlevel = []
             while(len(clevel) > 0):
                 c = clevel.pop()
                 for v in G[c]:
                     if v not in visited:
-                        visited.add(v)
+                        visited.append(v)
                         nlevel.append(v)
             clevel = nlevel
             udiam += 1
@@ -79,6 +79,8 @@ def stream_diam(G):
 
     return step
 
+debug = True
+
 DIRECTED = False
 file_name = "ca-sandi_auths.mtx"
 sep = " "
@@ -87,6 +89,11 @@ JOBS = 6
 
 if __name__ == "__main__":
     G = load_node(file_name, DIRECTED, sep)
+    if debug:
+      if not DIRECTED:
+        print(nx.number_connected_components(G))
+      print(G.number_of_nodes())
+      print(G.number_of_edges())
     print("Diametro ottimale: ", diameter(G))
     nodes_sample = random.sample(G.nodes(), int(SAMPLE * G.number_of_nodes()))
     print("Diametro con tasso di sampling", SAMPLE * 100, ":", diameter(G, nodes_sample))
