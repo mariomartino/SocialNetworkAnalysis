@@ -94,9 +94,14 @@ if __name__ == "__main__":
         print(nx.number_connected_components(G))
       print(G.number_of_nodes())
       print(G.number_of_edges())
-    print("Diametro ottimale: ", diameter(G))
+    import time
+    start_time = time.time()
+    print("Diametro ottimale: ", diameter(G), "in", (time.time() - start_time), "s")
+    start_time = time.time()
     nodes_sample = random.choices([*G.nodes()], k = int(SAMPLE * G.number_of_nodes()))
-    print("Diametro con tasso di sampling", SAMPLE * 100, ":", diameter(G, nodes_sample))
-    print("Diametro con implementazione parallela e", JOBS, "jobs:", parallel_diam(G, JOBS))
+    print("Diametro con tasso di sampling", SAMPLE * 100, ":", diameter(G, nodes_sample), "in", (time.time() - start_time), "s")
+    start_time = time.time()
+    print("Diametro con implementazione parallela e", JOBS, "jobs:", parallel_diam(G, JOBS), "in", (time.time() - start_time), "s")
     if not DIRECTED:
-        print("Diametro con implementazione ad-hoc:", stream_diam(G))
+        start_time = time.time()
+        print("Diametro con implementazione ad-hoc:", stream_diam(G), "in", (time.time() - start_time), "s")
