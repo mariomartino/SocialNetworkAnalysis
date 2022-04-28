@@ -4,6 +4,7 @@ import random
 import itertools as it
 from joblib import Parallel, delayed
 from GraphLoading import load_node
+import time
 
 # Optimal and Sampling. Funziona sia per grafi diretti che grafi non diretti.
 
@@ -94,7 +95,6 @@ if __name__ == "__main__":
         print(nx.number_connected_components(G))
       print(G.number_of_nodes())
       print(G.number_of_edges())
-    import time
     start_time = time.time()
     print("Diametro ottimale: ", diameter(G), "in", (time.time() - start_time), "s")
     start_time = time.time()
