@@ -95,7 +95,7 @@ if __name__ == "__main__":
       print(G.number_of_nodes())
       print(G.number_of_edges())
     print("Diametro ottimale: ", diameter(G))
-    nodes_sample = random.sample(G.nodes(), int(SAMPLE * G.number_of_nodes()))
+    nodes_sample = random.choices([*G.nodes()], k = int(SAMPLE * G.number_of_nodes()))
     print("Diametro con tasso di sampling", SAMPLE * 100, ":", diameter(G, nodes_sample))
     print("Diametro con implementazione parallela e", JOBS, "jobs:", parallel_diam(G, JOBS))
     if not DIRECTED:
