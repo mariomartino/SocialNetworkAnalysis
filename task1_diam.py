@@ -3,8 +3,8 @@ import math
 import random
 import itertools as it
 from joblib import Parallel, delayed
-from GraphLoading import load_node
 import time
+from utils import debug_info, load_node
 
 # Optimal and Sampling. Funziona sia per grafi diretti che grafi non diretti.
 
@@ -16,10 +16,13 @@ def diameter(G, sample=None):
     if sample is None:
         sample = nodes
 
+    i = 0
     for u in sample:
+        if i % 100 == 0:
+            print("Iterazione:", i)
         udiam = 0
         clevel = [u]
-        visited = [u]
+        visited = set(u)
         old_visited = 1
         while len(visited) < n:
             nlevel = []
@@ -28,7 +31,7 @@ def diameter(G, sample=None):
                 c = clevel.pop()
                 for v in G[c]:
                     if v not in visited:
-                        visited.append(v)
+                        visited.add(v)
                         nlevel.append(v)
             if old_visited == len(visited):
               break
@@ -36,17 +39,18 @@ def diameter(G, sample=None):
             udiam += 1
         if udiam > diam:
             diam = udiam
+        i += 1
 
     return diam
+
+
+# Parallel Implementation. Funziona sia per grafi diretti che grafi non diretti.
 
 
 def chunks(data, size):
     idata = iter(data)
     for i in range(0, len(data), size):
         yield {k: data[k] for k in it.islice(idata, size)}
-
-
-# Parallel Implementation. Funziona sia per grafi diretti che grafi non diretti.
 
 
 def parallel_diam(G, j):
@@ -86,23 +90,19 @@ def stream_diam(G):
 
 debug = True
 
-DIRECTED = False
-file_name = "ca-sandi_auths.mtx"
-sep = " "
+DIRECTED = True
+# file_name = "musae_facebook_edges.csv"
+file_name = "Cit-HepTh.txt"
+sep = "\t"
 SAMPLE = 0.8
 JOBS = 6
 
 if __name__ == "__main__":
     G = load_node(file_name, DIRECTED, sep)
     if debug:
-      if not DIRECTED:
-        print(nx.number_connected_components(G))
-      else:
-        print(nx.is_strongly_connected(G))
-      print(G.number_of_nodes())
-      print(G.number_of_edges())
+        debug_info(G, DIRECTED)
     start_time = time.time()
-    print("Diametro ottimale: ", diameter(G), "in", (time.time() - start_time), "s")
+    print("Diametro ottimale: ", diameter(G.to_undirected()), "in", (time.time() - start_time), "s")
     start_time = time.time()
     nodes_sample = random.choices([*G.nodes()], k = int(SAMPLE * G.number_of_nodes()))
     print("Diametro con tasso di sampling", SAMPLE * 100, ":", diameter(G, nodes_sample), "in", (time.time() - start_time), "s")
@@ -111,3 +111,6 @@ if __name__ == "__main__":
     if not DIRECTED:
         start_time = time.time()
         print("Diametro con implementazione ad-hoc:", stream_diam(G), "in", (time.time() - start_time), "s")
+
+
+# L'algoritmo mi ha restituito 37 per la rete di citazioni, 15 per la rete di Facebook
