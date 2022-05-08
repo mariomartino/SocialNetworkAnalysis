@@ -24,9 +24,11 @@ def diameter(G, sample=None):
         clevel = [u]
         visited = set(u)
         old_visited = 1
-        while len(visited) < n:
+        while len(visited)  < n:
             nlevel = []
             old_visited = len(visited)
+            # print("Old Visited:", old_visited)
+            # time.sleep(0.01)
             while(len(clevel) > 0):
                 c = clevel.pop()
                 for v in G[c]:
@@ -34,7 +36,7 @@ def diameter(G, sample=None):
                         visited.add(v)
                         nlevel.append(v)
             if old_visited == len(visited):
-              break
+                break
             clevel = nlevel
             udiam += 1
         if udiam > diam:
@@ -88,12 +90,92 @@ def stream_diam(G):
 
     return step
 
+# Ad Hoc Implementation that executes BFS on only nodes in biggest connected components (strongly if directed). There are two implementations for directed and undirected graphs.
+
+def directed_optimized_diameter(G):
+    number_components = nx.number_strongly_connected_components(G)
+    number_of_components_analyzed = int(number_components/4) if number_components > 10 else 1
+    components = list(nx.strongly_connected_components(G))
+    Gset = []
+    for _ in range(number_of_components_analyzed):
+        bigger = max(components, key=len)
+        components.remove(bigger)
+        Gset.extend(list(bigger))
+    n = len(list(Gset))
+    i = 0
+    diam = 0
+    for u in Gset:
+        if i % 100 == 0:
+            print("Iterazione:", i)
+        udiam = 0
+        clevel = [u]
+        visited = set(u)
+        old_visited = 1
+        while len(visited) < n:
+            nlevel = []
+            old_visited = len(visited)
+            while(len(clevel) > 0):
+                c = clevel.pop()
+                for v in G[c]:
+                    if v not in visited:
+                        visited.add(v)
+                        nlevel.append(v)
+            if old_visited == len(visited):
+                break
+            clevel = nlevel
+            udiam += 1
+        if udiam > diam:
+            diam = udiam
+        i += 1
+
+    return diam
+
+def undirected_optimized_diameter(G):
+    number_components = nx.number_connected_components(G)
+    number_of_components_analyzed = int(number_components/4) if number_components > 10 else 1
+    components = list(nx.connected_components(G))
+    Gset = []
+    for _ in range(number_of_components_analyzed):
+        bigger = max(components, key=len)
+        components.remove(bigger)
+        Gset.extend(list(bigger))
+    n = len(list(Gset))
+    i = 0
+    diam = 0
+    for u in Gset:
+        if i % 100 == 0:
+            print("Iterazione:", i)
+        udiam = 0
+        clevel = [u]
+        visited = set(u)
+        old_visited = 1
+        while len(visited) < n:
+            nlevel = []
+            old_visited = len(visited)
+            while(len(clevel) > 0):
+                c = clevel.pop()
+                for v in G[c]:
+                    if v not in visited:
+                        visited.add(v)
+                        nlevel.append(v)
+            if old_visited == len(visited):
+                break
+            clevel = nlevel
+            udiam += 1
+        if udiam > diam:
+            diam = udiam
+        i += 1
+
+    return diam
+
+
 debug = True
 
-DIRECTED = True
-# file_name = "musae_facebook_edges.csv"
-file_name = "Cit-HepTh.txt"
-sep = "\t"
+DIRECTED = False
+file_name = "musae_facebook_edges.csv"
+# file_name = "Cit-HepTh.txt"
+# file_name = "ca-sandi_auths.mtx"
+sep = ","
 SAMPLE = 0.8
 JOBS = 6
 
@@ -102,7 +184,7 @@ if __name__ == "__main__":
     if debug:
         debug_info(G, DIRECTED)
     start_time = time.time()
-    print("Diametro ottimale: ", diameter(G.to_undirected()), "in", (time.time() - start_time), "s")
+    print("Diametro ottimale: ", diameter(G), "in", (time.time() - start_time), "s")
     start_time = time.time()
     nodes_sample = random.choices([*G.nodes()], k = int(SAMPLE * G.number_of_nodes()))
     print("Diametro con tasso di sampling", SAMPLE * 100, ":", diameter(G, nodes_sample), "in", (time.time() - start_time), "s")
@@ -111,6 +193,11 @@ if __name__ == "__main__":
     if not DIRECTED:
         start_time = time.time()
         print("Diametro con implementazione ad-hoc:", stream_diam(G), "in", (time.time() - start_time), "s")
+        start_time = time.time()
+        print("Diametro con nuova implementazione ad-hoc:", undirected_optimized_diameter(G), "in", (time.time() - start_time), "s")
+    else:
+        start_time = time.time()
+        print("Diametro con nuova implementazione ad-hoc:", directed_optimized_diameter(G), "in", (time.time() - start_time), "s")
 
 
-# L'algoritmo mi ha restituito 37 per la rete di citazioni, 15 per la rete di Facebook
+# L'algoritmo mi ha restituito 37 per la rete di citazioni se diretta, 15 per la rete di Facebook, 15 per diametro su citazioni.to_undirected()
