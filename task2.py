@@ -64,7 +64,9 @@ def closeness(G):
 
 G = utils.load_node("email-Eu-core.txt", True, " ")
 page_rank(G)
-for u in G.nodes(data="weight"):
+results = list(G.nodes(data="weight"))
+results.sort(key=lambda tup:tup[1], reverse=True)
+for u in results:
   print(u)
 
 #Fare il sort per vedere il nodo più popolare
