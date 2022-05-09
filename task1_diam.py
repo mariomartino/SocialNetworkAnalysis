@@ -27,8 +27,6 @@ def diameter(G, sample=None):
         while len(visited)  < n:
             nlevel = []
             old_visited = len(visited)
-            # print("Old Visited:", old_visited)
-            # time.sleep(0.01)
             while(len(clevel) > 0):
                 c = clevel.pop()
                 for v in G[c]:
@@ -198,6 +196,3 @@ if __name__ == "__main__":
     else:
         start_time = time.time()
         print("Diametro con nuova implementazione ad-hoc:", directed_optimized_diameter(G), "in", (time.time() - start_time), "s")
-
-
-# L'algoritmo mi ha restituito 37 per la rete di citazioni se diretta, 15 per la rete di Facebook, 15 per diametro su citazioni.to_undirected()
