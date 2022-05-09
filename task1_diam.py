@@ -88,50 +88,17 @@ def stream_diam(G):
 
     return step
 
-# Ad Hoc Implementation that executes BFS on only nodes in biggest connected components (strongly if directed). There are two implementations for directed and undirected graphs.
+# Ad Hoc Implementation that executes BFS on only nodes in biggest connected components (strongly if directed). The implementation is valid for both directed and undirected graphs.
 
-def directed_optimized_diameter(G):
-    number_components = nx.number_strongly_connected_components(G)
-    number_of_components_analyzed = int(number_components/4) if number_components > 10 else 1
-    components = list(nx.strongly_connected_components(G))
-    Gset = []
-    for _ in range(number_of_components_analyzed):
-        bigger = max(components, key=len)
-        components.remove(bigger)
-        Gset.extend(list(bigger))
-    n = len(list(Gset))
-    i = 0
-    diam = 0
-    for u in Gset:
-        if i % 100 == 0:
-            print("Iterazione:", i)
-        udiam = 0
-        clevel = [u]
-        visited = set(u)
-        old_visited = 1
-        while len(visited) < n:
-            nlevel = []
-            old_visited = len(visited)
-            while(len(clevel) > 0):
-                c = clevel.pop()
-                for v in G[c]:
-                    if v not in visited:
-                        visited.add(v)
-                        nlevel.append(v)
-            if old_visited == len(visited):
-                break
-            clevel = nlevel
-            udiam += 1
-        if udiam > diam:
-            diam = udiam
-        i += 1
-
-    return diam
-
-def undirected_optimized_diameter(G):
-    number_components = nx.number_connected_components(G)
-    number_of_components_analyzed = int(number_components/4) if number_components > 10 else 1
-    components = list(nx.connected_components(G))
+def optimized_diameter(G, directed=False):
+    if directed:
+        number_components = nx.number_strongly_connected_components(G)
+        number_of_components_analyzed = int(number_components/4) if number_components > 10 else 1
+        components = list(nx.strongly_connected_components(G))
+    else:
+        number_components = nx.number_connected_components(G)
+        number_of_components_analyzed = int(number_components/4) if number_components > 10 else 1
+        components = list(nx.connected_components(G))
     Gset = []
     for _ in range(number_of_components_analyzed):
         bigger = max(components, key=len)
@@ -188,11 +155,8 @@ if __name__ == "__main__":
     print("Diametro con tasso di sampling", SAMPLE * 100, ":", diameter(G, nodes_sample), "in", (time.time() - start_time), "s")
     start_time = time.time()
     print("Diametro con implementazione parallela e", JOBS, "jobs:", parallel_diam(G, JOBS), "in", (time.time() - start_time), "s")
+    start_time = time.time()
+    print("Diametro con nuova implementazione ad-hoc:", optimized_diameter(G, DIRECTED), "in", (time.time() - start_time), "s")
     if not DIRECTED:
         start_time = time.time()
         print("Diametro con implementazione ad-hoc:", stream_diam(G), "in", (time.time() - start_time), "s")
-        start_time = time.time()
-        print("Diametro con nuova implementazione ad-hoc:", undirected_optimized_diameter(G), "in", (time.time() - start_time), "s")
-    else:
-        start_time = time.time()
-        print("Diametro con nuova implementazione ad-hoc:", directed_optimized_diameter(G), "in", (time.time() - start_time), "s")
