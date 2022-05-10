@@ -63,10 +63,30 @@ def closeness(G):
     return cen
 
 G = utils.load_node("email-Eu-core.txt", True, " ")
+
 page_rank(G)
 results = list(G.nodes(data="weight"))
 results.sort(key=lambda tup:tup[1], reverse=True)
-for u in results:
-  print(u)
 
-#Fare il sort per vedere il nodo più popolare
+#Stampa del page rank in ordine decrescente
+#for u in results:
+#  print(u)
+
+print(results[0])
+
+cen = degree(G)
+clo = degree(G)
+
+cen_sort = list(cen.items())
+cen_sort.sort(key= lambda tup:tup[1], reverse=True)
+# Essendo clo e cen uguali, basta stamparne uno
+
+# Stampa di tutti i nodi con la loro degree/closeness
+#for key, value in cen.items():
+#  print(str(key) + ": " + str(value))
+
+#Stampa dei nodi ordinati decrescente
+#for k in cen_sort:
+#  print(k)
+
+print(cen_sort[0])
