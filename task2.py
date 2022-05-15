@@ -2,39 +2,37 @@ import networkx as nx
 import utils
 
 def page_rank(G):
-  graph = G.copy()
-  num_nodes = graph.number_of_nodes()
+  num_nodes = G.number_of_nodes()
   rank = 1/num_nodes
   nnode = [
-    (n, {"weight": rank}) for n in graph.nodes()
+    (n, {"page_rank": rank}) for n in G.nodes()
     ]
 
-  graph.update(nodes = nnode)
+  G.update(nodes = nnode)
   
   for i in range(0, 2):
-    for u in graph.nodes(data="weight"):
-      out_edge = graph.out_edges(u)
+    for u in G.nodes(data="page_rank"):
+      out_edge = G.out_edges(u)
       if u[1] != 0 and len(out_edge) != 0:
         d = u[1]/len(out_edge)
       else: 
         d = 0
       n_out_edge = [
         (u[0], v, {"weight" : d})
-        for v in graph[u[0]]
+        for v in G[u[0]]
       ]
-      graph.update(edges = n_out_edge)
+      G.update(edges = n_out_edge)
     
     unode = []
-    for u in graph.nodes(data="weight"):
-      in_edge = graph.in_edges(u[0], data="weight")
+    for u in G.nodes(data="weight"):
+      in_edge = G.in_edges(u[0], data="weight")
       unode.append(
-        (u[0], {"weight": sum(v[2] for v in in_edge)})
+        (u[0], {"page_rank": sum(v[2] for v in in_edge)})
       )
 
-    graph.update(nodes = unode)
+    G.update(nodes = unode)
   
-  pagerank = dict( {u[0]: u[1] for u in graph.nodes(data="weight")} )
-  return pagerank
+  return G
 
 def degree(G):
     cen=dict()
@@ -139,6 +137,30 @@ def hits(G):
     auth = new_auth
   return hubs, auth
 
+def hits_hubs(G, hubs):
+  nnode = [
+    (n, {"hubs": hubs[n]}) for n in G.nodes()
+    ]
+  
+  G.update(nodes = nnode)
+  return G
+
+def hits_authority(G, authority):
+  nnode = [
+    (n, {"authority": authority[n]}) for n in G.nodes()
+    ]
+  
+  G.update(nodes = nnode)
+  return G
+
+def hits_average(G, hubs, authority):
+  nnode = [
+    (n, {"average": (authority[n]+hubs[n])/2}) for n in G.nodes()
+    ]
+  
+  G.update(nodes = nnode)
+  return G
+
 ###########################################################################
 ## Main test ##
 G = utils.load_node("email-Eu-core.txt", True, " ")
@@ -146,8 +168,13 @@ G = utils.load_node("email-Eu-core.txt", True, " ")
 cen = degree(G)
 clo = closeness(G)
 bet = btw(G)
-pr = page_rank(G)
+page_rank(G)
 h, a = hits(G)
+
+hits_hubs(G,h)
+hits_authority(G,a)
+hits_average(G,h,a)
+
 
 ###########################################################################
 
@@ -184,25 +211,32 @@ bet_sort.sort(key= lambda tup:tup[1], reverse=True)
 #for k in bet_sort:
 #  print(k)
 
-results = list(pr.items())
+results = list(G.nodes(data="page_rank"))
 results.sort(key=lambda tup:tup[1], reverse=True)
 
 #Stampa del page rank in ordine decrescente
 #for u in results:
 #  print(u)
 
-hubs = list(h.items())
+hubs = list(G.nodes(data="hubs"))
 hubs.sort(key=lambda tup:tup[1], reverse=True)
 
 #Stampa del hubs in ordine decrescente
 #for u in hubs:
 #  print(u)
 
-auth = list(a.items())
+auth = list(G.nodes(data="authority"))
 auth.sort(key=lambda tup:tup[1], reverse=True)
 
-#Stampa del hubs in ordine decrescente
+#Stampa del authority in ordine decrescente
 #for u in auth:
+#  print(u)
+
+av = list(G.nodes(data="average"))
+av.sort(key=lambda tup:tup[1], reverse=True)
+
+#Stampa del average in ordine decrescente
+#for u in av:
 #  print(u)
 
 print("Degree: "+str(cen_sort[0]))
@@ -211,6 +245,6 @@ print("Betweenness: "+str(bet_sort[0]))
 print("Page Rank: "+str(results[0]))
 print("Hubs: "+str(hubs[0]))
 print("Authority: "+str(auth[0]))
-
+print("Average: "+str(av[0]))
 
 
