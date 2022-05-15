@@ -117,11 +117,11 @@ def hits(G):
 
       for o in out:
         if o[1] != u:
-          new_hubs[u] += auth[o[1]]
+          new_hubs[u] += hubs[o[1]]
       
       for j in inn:
         if j[0] != u:
-          new_auth[u] += hubs[j[0]]
+          new_auth[u] += auth[j[0]]
 
     
     tot_hubs += sum(new_hubs.values())
