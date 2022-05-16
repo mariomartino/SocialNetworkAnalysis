@@ -9,7 +9,7 @@ from priorityq import PriorityQueue
 import random
 from scipy.sparse import linalg
 
-# Bottom-Up Approach. It works for undirected. It seems it must be tested on directed graph.
+# Bottom-Up Approach. It works for undirected. It seems it must be tested on directed graph. A termination condition is not present.
 
 def hierarchical(G):
     # Create a priority queue with each pair of nodes indexed by distance
@@ -52,20 +52,32 @@ def hierarchical(G):
 
 
 # Two Means Algorithm. It should work on both directed and undirected graphs.
+# The algorithm has been changed in order to manage not connected graphs.
 
 def two_means(G):
     n=G.number_of_nodes()
     # Choose two clusters represented by vertices that are not neighbors
     u = random.choice(list(G.nodes()))
     v = random.choice(list(nx.non_neighbors(G, u)))
+    results = []
     cluster0 = {u}
     cluster1 = {v}
     added = 2
 
     while added < n:
         # Choose a node that is not yet in a cluster and add it to the closest cluster
-        x = random.choice([el for el in G.nodes() if el not in cluster0|cluster1 and (len(
-            set(G.neighbors(el)).intersection(cluster0)) != 0 or len(set(G.neighbors(el)).intersection(cluster1)) != 0)])
+        list_possible = [el for el in G.nodes() if el not in cluster0|cluster1 and (len( 
+            set(G.neighbors(el)).intersection(cluster0)) != 0 or len(set(G.neighbors(el)).intersection(cluster1)) != 0)]
+        if len(list_possible) == 0:
+            results.append(cluster0)
+            results.append(cluster1)
+            u = random.choice(list(el for el in G.nodes() if el not in list(results[i] for i in range(len(results)))))
+            v = random.choice(list(nx.non_neighbors(G, u)))
+            cluster0 = {u}
+            cluster1 = {v}
+            added += 2
+            continue
+        x = random.choice(list_possible)
         if len(set(G.neighbors(x)).intersection(cluster0)) != 0:
             cluster0.add(x)
             added+=1
@@ -73,7 +85,11 @@ def two_means(G):
             cluster1.add(x)
             added+=1
 
-    print(cluster0, cluster1)
+    results.extend([cluster0, cluster1])
+    
+    print(results)
+    for i in range(len(results)):
+        print(len(results[i]))
 
 
 # Betweenness Algorithm. 
@@ -189,12 +205,11 @@ if __name__ == "__main__":
     G = load_node(file_name, DIRECTED, sep)
     if debug:
         debug_info(G, DIRECTED)
+    # start_time = time.time()
+    # print("Clustering gerarchico: ", hierarchical(G), "in", (time.time() - start_time), "s")
     start_time = time.time()
-    print("Clustering gerarchico: ", hierarchical(G), "in", (time.time() - start_time), "s")
+    print("Clustering two means:", two_means(G.to_undirected()), "in", (time.time() - start_time), "s")
     """start_time = time.time()
-    nodes_sample = random.choices([*G.nodes()], k = int(SAMPLE * G.number_of_nodes()))
-    print("Diametro con tasso di sampling", SAMPLE * 100, ":", diameter(G, nodes_sample), "in", (time.time() - start_time), "s")
-    start_time = time.time()
     print("Diametro con implementazione parallela e", JOBS, "jobs:", parallel_diam(G, JOBS), "in", (time.time() - start_time), "s")
     if not DIRECTED:
         start_time = time.time()
