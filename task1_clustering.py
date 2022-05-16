@@ -12,7 +12,6 @@ from scipy.sparse import linalg
 # Bottom-Up Approach. It works for undirected. It seems it must be tested on directed graph. A termination condition is not present.
 
 def hierarchical(G):
-    # Create a priority queue with each pair of nodes indexed by distance
     pq = PriorityQueue()
     for u in G.nodes():
         for v in G.nodes():
@@ -22,19 +21,16 @@ def hierarchical(G):
                 else:
                     pq.add(frozenset([frozenset([u]), frozenset([v])]), 1)
 
-    # Start with a cluster for each node
     
     for u in G.nodes():
         clusters = set(frozenset([u]) for u in G.nodes())
 
     done = False
     while not done:
-        # Merge closest clusters
         s = list(pq.pop())
         clusters.remove(s[0])
         clusters.remove(s[1])
 
-        # Update the distance of other clusters from the merged cluster
         for w in clusters:
             e1 = pq.remove(frozenset([s[0], w]))
             e2 = pq.remove(frozenset([s[1], w]))
@@ -56,7 +52,6 @@ def hierarchical(G):
 
 def two_means(G):
     n=G.number_of_nodes()
-    # Choose two clusters represented by vertices that are not neighbors
     u = random.choice(list(G.nodes()))
     v = random.choice(list(nx.non_neighbors(G, u)))
     results = []
@@ -65,7 +60,6 @@ def two_means(G):
     added = 2
 
     while added < n:
-        # Choose a node that is not yet in a cluster and add it to the closest cluster
         list_possible = [el for el in G.nodes() if el not in cluster0|cluster1 and (len( 
             set(G.neighbors(el)).intersection(cluster0)) != 0 or len(set(G.neighbors(el)).intersection(cluster1)) != 0)]
         if len(list_possible) == 0:
@@ -99,13 +93,12 @@ def betweenness(G):
     node_btw={i:0 for i in G.nodes()}
 
     for s in G.nodes():
-        # Compute the number of shortest paths from s to every other node
-        tree=[] #it lists the nodes in the order in which they are visited
-        spnum={i:0 for i in G.nodes()} #it saves the number of shortest paths from s to i
-        parents={i:[] for i in G.nodes()} #it saves the parents of i in each of the shortest paths from s to i
-        distance={i:-1 for i in G.nodes()} #the number of shortest paths starting from s that use the edge e
-        eflow={frozenset(e):0 for e in G.edges()} #the number of shortest paths starting from s that use the edge e
-        vflow={i:1 for i in G.nodes()} #the number of shortest paths starting from s that use the vertex i. It is initialized to 1 because the shortest path from s to i is assumed to uses that vertex once.
+        tree=[]
+        spnum={i:0 for i in G.nodes()} 
+        parents={i:[] for i in G.nodes()} 
+        distance={i:-1 for i in G.nodes()} 
+        eflow={frozenset(e):0 for e in G.edges()} 
+        vflow={i:1 for i in G.nodes()} 
 
         #BFS
         queue=[s]
@@ -115,42 +108,31 @@ def betweenness(G):
             c=queue.pop(0)
             tree.append(c)
             for i in G[c]:
-                if distance[i] == -1: #if vertex i has not been visited
+                if distance[i] == -1: 
                     queue.append(i)
                     distance[i]=distance[c]+1
-                if distance[i] == distance[c]+1: #if we have just found another shortest path from s to i
+                if distance[i] == distance[c]+1: 
                     spnum[i]+=spnum[c]
                     parents[i].append(c)
 
-        # BOTTOM-UP PHASE
         while tree != []:
             c=tree.pop()
             for i in parents[c]:
-                eflow[frozenset({c,i})]+=vflow[c] * (spnum[i]/spnum[c]) #the number of shortest paths using vertex c is split among the edges towards its parents proportionally to the number of shortest paths that the parents contributes
-                vflow[i]+=eflow[frozenset({c,i})] #each shortest path that use an edge (i,c) where i is closest to s than c must use also vertex i
-                edge_btw[frozenset({c,i})]+=eflow[frozenset({c,i})] #betweenness of an edge is the sum over all s of the number of shortest paths from s to other nodes using that edge
+                eflow[frozenset({c,i})]+=vflow[c] * (spnum[i]/spnum[c]) 
+                vflow[i]+=eflow[frozenset({c,i})]
+                edge_btw[frozenset({c,i})]+=eflow[frozenset({c,i})] 
             if c != s:
-                node_btw[c]+=vflow[c] #betweenness of a vertex is the sum over all s of the number of shortest paths from s to other nodes using that vertex
+                node_btw[c]+=vflow[c] 
 
     return edge_btw,node_btw
 
-# Girman-Newman Algorithm.
+# Girman-Newman Algorithm. A termination condition is not present. It works but the betweenness computation require an huge amount of time.
 
 def girman_newman(G):
-    # Clusters are computed by iteratively removing edges of largest betweenness
-    graph=G.copy() #We make a copy of the graph. In this way we will modify the copy, but not the original graph
+    graph=G.copy() 
     done = False
     while not done:
-        # After each edge removal we will recompute betweenness:
-        # indeed, edges with lower betweenness may have increased their importance,
-        # since shortest path that previously went through on deleted edges, now may be routed on this new edge;
-        # similarly, edges with high betweenness may have decreased their importance,
-        # since most of the shortest paths previously going through them disappeared because the graph has been disconnected.
-        # However, complexity arising from recomputing betweenness at each iteration is huge.
-        # An optimization in this case would be to compute betweenness only once
-        # and to remove edges in decreasing order of computed betweenness.
         eb, nb = betweenness(graph)
-        #Finding the edge with highest betweenness
         edge = None
         bet = -1
         for i in eb.keys():
@@ -158,12 +140,6 @@ def girman_newman(G):
                 edge=i
                 bet = eb[i]
         graph.remove_edge(*list(edge))
-        #Deciding whether to stop the clustering procedure
-        #To automatize this decision, we can use some measure of performance of the clustering.
-        #An example of this measure is the function nx.algorithms.community.partition_quality(G, list(nx.connected_components(graph))).
-        #See networx documentation for more details.
-        #Given one such measure, one may continue iteration of the algorithm as long as the newly achieved clustering
-        #has performance that are not worse than the previous clustering or above a given threshold.
         print(list(nx.connected_components(graph)))
         a = input("Do you want to continue? (y/n) ")
         if a == "n":
@@ -171,13 +147,16 @@ def girman_newman(G):
 
     return list(nx.connected_components(graph))
 
-# Spectral Algorithm working on Laplacian. It works for both directed and undirected graph
+# Spectral Algorithm working on Laplacian. It works for both directed and undirected graph. It's the only method that exploit direction information.
 
-def spectral(G):
+def spectral(G, directed):
     n=G.number_of_nodes()
     nodes=sorted(G.nodes())
 
-    L = nx.laplacian_matrix(G, nodes).asfptype()
+    if directed:
+        L = nx.laplacian_matrix(G, nodes).asfptype()
+    else:
+        L = nx.directed_laplacian_matrix(G, nodes)
 
     w, v = linalg.eigsh(L,n-1)
 
@@ -205,12 +184,11 @@ if __name__ == "__main__":
     G = load_node(file_name, DIRECTED, sep)
     if debug:
         debug_info(G, DIRECTED)
-    # start_time = time.time()
-    # print("Clustering gerarchico: ", hierarchical(G), "in", (time.time() - start_time), "s")
+    start_time = time.time()
+    print("Clustering gerarchico: ", hierarchical(G), "in", (time.time() - start_time), "s")
     start_time = time.time()
     print("Clustering two means:", two_means(G.to_undirected()), "in", (time.time() - start_time), "s")
-    """start_time = time.time()
-    print("Diametro con implementazione parallela e", JOBS, "jobs:", parallel_diam(G, JOBS), "in", (time.time() - start_time), "s")
-    if not DIRECTED:
-        start_time = time.time()
-        print("Diametro con implementazione ad-hoc:", stream_diam(G), "in", (time.time() - start_time), "s")"""
+    start_time = time.time()
+    print("Clustering con Girman-Newman", girman_newman(G.to_undirected()), "in", (time.time() - start_time), "s")
+    start_time = time.time()
+    print("Clustering con matrice Laplaciana", spectral(G, DIRECTED), "in", (time.time() - start_time), "s")
