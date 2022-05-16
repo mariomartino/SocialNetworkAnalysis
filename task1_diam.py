@@ -55,11 +55,8 @@ def chunks(data, size):
 
 def parallel_diam(G, j):
     diam = 0
-    # Initialize the class Parallel with the number of available process
     with Parallel(n_jobs=j) as parallel:
-        # Run in parallel diameter function on each processor by passing to each processor only the subset of nodes on which it works
         result = parallel(delayed(diameter)(G, X) for X in chunks(G.nodes(), math.ceil(len(G.nodes())/j)))
-        # Aggregates the results
         for res in result:
             if res > diam:
                 diam = res
@@ -71,15 +68,12 @@ def parallel_diam(G, j):
 
 def stream_diam(G):
     step = 0
-    # At the beginning, R contains for each vertex v the number of nodes that can be reached from v in one step
     R = {v:  G.degree(v) for v in G.nodes()}
     done = False
 
     while not done:
         done = True
         for edge in G.edges():
-            # At the i-th iteration, we want that R contains for each vertex v an approximation of the number of nodes that can be reached from v in i+1 steps
-            # If there is edge (u,v), then v can reach in i+1 steps at least the number of nodes that u can reach in i steps
             if R[edge[0]] != R[edge[1]]:
                 R[edge[0]] = max(R[edge[0]], R[edge[1]])
                 R[edge[1]] = max(R[edge[0]], R[edge[1]])

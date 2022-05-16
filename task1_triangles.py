@@ -53,22 +53,16 @@ def chunks(data, size):
 
 def parallel_undirected_triangles(G, j):
     triangles = 0
-    # Initialize the class Parallel with the number of available process
     with Parallel(n_jobs=j) as parallel:
-        # Run in parallel diameter function on each processor by passing to each processor only the subset of nodes on which it works
         result = parallel(delayed(undirected_triangles)(G, X) for X in chunks(G.nodes(), math.ceil(len(G.nodes())/j)))
-        # Aggregates the results
         for res in result:
             triangles += res
     return int(triangles / 6)
 
 def parallel_directed_triangles(G, j):
     triangles = 0
-    # Initialize the class Parallel with the number of available process
     with Parallel(n_jobs=j) as parallel:
-        # Run in parallel diameter function on each processor by passing to each processor only the subset of nodes on which it works
         result = parallel(delayed(directed_triangles)(G, X) for X in chunks(G.nodes(), math.ceil(len(G.nodes())/j)))
-        # Aggregates the results
         for res in result:
             triangles += res
     return int(triangles / 3)
@@ -95,12 +89,12 @@ def num_triangles(G):
         if G.has_edge(triple[0], triple[1]) and G.has_edge(triple[0], triple[2]) and G.has_edge(triple[2], triple[1]):
             num_triangles += 1
 
-    for edge in G.edges():  # They are m
+    for edge in G.edges():  
         if edge[0] != edge[1]:
             sel = less(G, edge)
-            if edge[sel] not in heavy_hitters:  # If the endpoint of smaller degree is an heavy hitter, we skip this edge
-                for i in G[edge[sel]]:  # They are less than sqrt(m)
-                    if less(G, [i, edge[1-sel]]) and G.has_edge(i, edge[1-sel]) and i != edge[sel] and i != edge[1-sel]:  # In this way we count the triangle only once
+            if edge[sel] not in heavy_hitters: 
+                for i in G[edge[sel]]:  
+                    if less(G, [i, edge[1-sel]]) and G.has_edge(i, edge[1-sel]) and i != edge[sel] and i != edge[1-sel]:  
                         num_triangles += 1
 
     return num_triangles
