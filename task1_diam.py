@@ -22,7 +22,7 @@ def diameter(G, sample=None):
             print("Iterazione:", i)
         udiam = 0
         clevel = [u]
-        visited = set(u)
+        visited = set([u])
         old_visited = 1
         while len(visited)  < n:
             nlevel = []
@@ -112,7 +112,7 @@ def optimized_diameter(G, directed=False):
             print("Iterazione:", i)
         udiam = 0
         clevel = [u]
-        visited = set(u)
+        visited = set([u])
         old_visited = 1
         while len(visited) < n:
             nlevel = []
