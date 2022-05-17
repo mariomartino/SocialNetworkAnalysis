@@ -1,4 +1,5 @@
 import networkx as nx
+import numpy as np
 import utils
 
 def page_rank(G):
@@ -33,6 +34,18 @@ def page_rank(G):
     G.update(nodes = unode)
   
   return G
+
+def page_rank2(G):
+  n = G.number_of_nodes()
+  transition = np.zeros((n,n))
+  rank = np.array([1/n for i in range(n)]).transpose
+  for edge in G.edges():
+    transition[edge[0]][edge[1]] = 1/G.degree(edge[0])
+
+  for i in range(2):
+    rank = np.multiply(transition, rank)
+
+  return {{i:rank[i]} for i in G.nodes()}
 
 def degree(G):
     cen=dict()
@@ -135,6 +148,22 @@ def hits(G):
 
     hubs = new_hubs
     auth = new_auth
+  return hubs, auth
+
+def hits2(G):
+  n = G.number_of_nodes()
+  transition = np.zeros((n,n))
+  hubs = np.array([1/n for i in range(n)]).transpose
+  auth = np.array([1/n for i in range(n)]).transpose
+  for edge in G.edges():
+    transition[edge[0]][edge[1]] = 1
+
+  for i in range(2):
+    hubs = np.multiply(transition, auth)
+    hubs = hubs/(np.linalg.norm(hubs))
+    auth = np.multiply(transition, hubs)
+    auth = hubs/(np.linalg.norm(auth))
+
   return hubs, auth
 
 def hits_hubs(G, hubs):
