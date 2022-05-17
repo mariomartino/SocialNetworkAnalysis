@@ -1,5 +1,7 @@
 import networkx as nx
 import numpy as np
+from joblib import Parallel, delayed
+import math
 import utils
 
 def page_rank(G):
@@ -114,6 +116,9 @@ def betweenness(G):
 def btw(G):
     return betweenness(G)[1]
 
+###########################################################################
+# Hits Implementation.
+
 def hits(G):
   hubs = dict( {v: 1 for v in G.nodes()} )
   auth = dict( {v: 1 for v in G.nodes()} )
@@ -189,6 +194,27 @@ def hits_average(G, hubs, authority):
   
   G.update(nodes = nnode)
   return G
+
+###########################################################################
+# Hits Parallel Implementation. Map Reduce.
+# It doesn't work, maybe for the type returned by nx.adjacency_matrix.
+
+def matrix_division(matrix, array, k):
+  
+  for i in range(0, matrix.shape[0], k):
+    for j in range(0, matrix.shape[1], k):
+      yield j%k, matrix[i:i+k, j:j+k], array[j:j+k]
+
+def parallel_multiply(j, matrix, array):
+  return j, np.multiply(matrix,array)
+
+def pagerank_parallel(G, jobs):
+  pagerank = np.zeros((1,G.number_of_nodes()))
+  with Parallel(n_jobs=jobs) as parallel:
+    result = parallel(delayed(parallel_multiply)(j, matrix, array) for j, matrix, array in matrix_division(nx.adjacency_matrix(G), page_rank, math.ceil(G.number_of_nodes()/jobs)))
+    for res in result:
+      pagerank[res[0]:res[0]+math.ceil(G.number_of_nodes()/jobs),] += res[1]
+  return pagerank
 
 ###########################################################################
 ## Main test ##
@@ -272,6 +298,7 @@ print("Degree: "+str(cen_sort[0]))
 print("Closeness: "+str(clo_sort[0]))
 print("Betweenness: "+str(bet_sort[0]))
 print("Page Rank: "+str(results[0]))
+print("Page Rank parallelo:"+pagerank_parallel(G, 4))
 print("Hubs: "+str(hubs[0]))
 print("Authority: "+str(auth[0]))
 print("Average: "+str(av[0]))
