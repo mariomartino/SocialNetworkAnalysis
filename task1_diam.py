@@ -10,37 +10,35 @@ from utils import debug_info, load_node
 
 
 def diameter(G, sample=None):
-    nodes = G.nodes()
-    n = len(nodes)
     diam = 0
     if sample is None:
-        sample = nodes
+        sample = G.nodes()
 
-    i = 0
-    for u in sample:
-        if i % 100 == 0:
-            print("Iterazione:", i)
-        udiam = 0
-        clevel = [u]
-        visited = set([u])
-        old_visited = 1
-        while len(visited)  < n:
-            nlevel = []
-            old_visited = len(visited)
-            while(len(clevel) > 0):
-                c = clevel.pop()
-                for v in G[c]:
-                    if v not in visited:
-                        visited.add(v)
-                        nlevel.append(v)
-            if old_visited == len(visited):
-                break
-            clevel = nlevel
-            udiam += 1
-        if udiam > diam:
-            diam = udiam
-        i += 1
+    connected_components = nx.strongly_connected_components(G) if nx.is_directed(G) else nx.connected_components(G)
 
+    for comp in connected_components:
+        n = len(comp)
+        if n < diam:
+            continue
+        for u in comp.intersection(sample):
+            if u not in sample:
+                continue
+            udiam = 0
+            clevel = [u]
+            visited = set([u])
+            while len(visited)  < n:
+                nlevel = []
+                while(len(clevel) > 0):
+                    c = clevel.pop()
+                    for v in G[c]:
+                        if v not in visited and v in comp:
+                            visited.add(v)
+                            nlevel.append(v)
+                clevel = nlevel
+                udiam += 1
+            if udiam > diam:
+                diam = udiam
+    
     return diam
 
 
@@ -86,55 +84,28 @@ def stream_diam(G):
 
 def optimized_diameter(G, directed=False):
     if directed:
-        number_components = nx.number_strongly_connected_components(G)
-        number_of_components_analyzed = int(number_components/4) if number_components > 10 else 1
         components = list(nx.strongly_connected_components(G))
     else:
-        number_components = nx.number_connected_components(G)
-        number_of_components_analyzed = int(number_components/4) if number_components > 10 else 1
         components = list(nx.connected_components(G))
+    components.sort(key=len, reverse=True)
     Gset = []
-    for _ in range(number_of_components_analyzed):
-        bigger = max(components, key=len)
-        components.remove(bigger)
-        Gset.extend(list(bigger))
-    n = len(list(Gset))
-    i = 0
-    diam = 0
-    for u in Gset:
-        if i % 100 == 0:
-            print("Iterazione:", i)
-        udiam = 0
-        clevel = [u]
-        visited = set([u])
-        old_visited = 1
-        while len(visited) < n:
-            nlevel = []
-            old_visited = len(visited)
-            while(len(clevel) > 0):
-                c = clevel.pop()
-                for v in G[c]:
-                    if v not in visited:
-                        visited.add(v)
-                        nlevel.append(v)
-            if old_visited == len(visited):
-                break
-            clevel = nlevel
-            udiam += 1
-        if udiam > diam:
-            diam = udiam
-        i += 1
+    current = 0
+    while len(Gset) < int(0.2*G.number_of_nodes()):
+        Gset.extend(list(components[current]))
+        current += 1
+    
+    diam = diameter(G, sample = Gset)
 
     return diam
 
 
 debug = True
 
-DIRECTED = False
-file_name = "musae_facebook_edges.csv"
-# file_name = "Cit-HepTh.txt"
+DIRECTED = True
+# file_name = "musae_facebook_edges.csv"
+file_name = "Cit-HepTh.txt"
 # file_name = "ca-sandi_auths.mtx"
-sep = ","
+sep = "\t"
 SAMPLE = 0.8
 JOBS = 6
 
