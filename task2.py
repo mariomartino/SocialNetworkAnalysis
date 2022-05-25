@@ -197,30 +197,38 @@ def hits_average(G, hubs, authority):
 
 ###########################################################################
 # Hits Parallel Implementation. Map Reduce.
-# It doesn't work, maybe for the type returned by nx.adjacency_matrix.
+# It doesn't work yet, I think there's a logic error on final results aggregation.
+# I must compute the sum for every row before to sum the column value (e.g same-i-sum before of same-j-sum).
 
 def matrix_division(matrix, array, k):
   
   for i in range(0, matrix.shape[0], k):
     for j in range(0, matrix.shape[1], k):
-      yield j%k, matrix[i:i+k, j:j+k], array[j:j+k]
+      print("I'm returning:", i, min(i+k,matrix.shape[1]))
+      yield j, matrix[i:min(i+k,matrix.shape[0]), j:min(j+k,matrix.shape[1])], array[j:min(j+k,matrix.shape[1])]
 
 def parallel_multiply(j, matrix, array):
-  return j, np.multiply(matrix,array)
+  return j, np.dot(matrix,array)
 
 def pagerank_parallel(G, jobs):
-  pagerank = np.zeros((1,G.number_of_nodes()))
+  n = G.number_of_nodes()
+  pagerank = np.array(n*[1/n])
+  results = np.zeros((n,))
   with Parallel(n_jobs=jobs) as parallel:
-    result = parallel(delayed(parallel_multiply)(j, matrix, array) for j, matrix, array in matrix_division(nx.adjacency_matrix(G), page_rank, math.ceil(G.number_of_nodes()/jobs)))
+    result = parallel(delayed(parallel_multiply)(j, matrix, array) for j, matrix, array in matrix_division(nx.adjacency_matrix(G).toarray(), pagerank, math.ceil(n/jobs)))
     for res in result:
-      pagerank[res[0]:res[0]+math.ceil(G.number_of_nodes()/jobs),] += res[1]
+      end_point = min(res[0] + math.ceil(n/jobs), n)
+      print(res[0], end_point, res[1].shape)
+      results[res[0]:end_point,] += res[1]
   return pagerank
 
 ###########################################################################
 ## Main test ##
 G = utils.load_node("email-Eu-core.txt", True, " ")
 
-cen = degree(G)
+print(pagerank_parallel(G, 6))
+
+"""cen = degree(G)
 clo = closeness(G)
 bet = btw(G)
 page_rank(G)
@@ -303,4 +311,4 @@ print("Hubs: "+str(hubs[0]))
 print("Authority: "+str(auth[0]))
 print("Average: "+str(av[0]))
 
-
+"""
