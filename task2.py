@@ -39,15 +39,24 @@ def page_rank(G):
 
 def page_rank2(G):
   n = G.number_of_nodes()
+  i = 0
+  nodes = dict()
+  for node in G.nodes():
+    nodes[node] = i
+    i += 1
   transition = np.zeros((n,n))
-  rank = np.array([1/n for i in range(n)]).transpose
+  rank = np.array([[1/n] for i in range(n)])
+
   for edge in G.edges():
-    transition[edge[0]][edge[1]] = 1/G.degree(edge[0])
+    transition[nodes[edge[1]]][nodes[edge[0]]] = 1/G.out_degree(edge[0])
 
   for i in range(2):
-    rank = np.multiply(transition, rank)
+    rank = np.dot(transition, rank)
 
-  return {{i:rank[i]} for i in G.nodes()}
+  result_dict = dict() 
+  for node in G.nodes():
+    result_dict[node] = rank[nodes[node]][0]
+  return result_dict
 
 def degree(G):
     cen=dict()
@@ -158,18 +167,33 @@ def hits(G):
 def hits2(G):
   n = G.number_of_nodes()
   transition = np.zeros((n,n))
-  hubs = np.array([1/n for i in range(n)]).transpose
-  auth = np.array([1/n for i in range(n)]).transpose
+  hubs = np.array([[1] for i in range(n)])
+  auth = np.array([[1] for i in range(n)])
+  
+  i = 0
+  nodes = dict()
+  for node in G.nodes():
+    nodes[node] = i
+    i += 1
+
   for edge in G.edges():
-    transition[edge[0]][edge[1]] = 1
+    transition[nodes[edge[0]]][nodes[edge[1]]] = 1
 
-  for i in range(2):
-    hubs = np.multiply(transition, auth)
-    hubs = hubs/(np.linalg.norm(hubs))
-    auth = np.multiply(transition, hubs)
-    auth = hubs/(np.linalg.norm(auth))
+  for i in range(100):
+    newhubs = np.dot(transition, auth)
+    newhubs = newhubs/(sum(newhubs))
+    newauth = np.dot(transition.transpose(), hubs)
+    newauth = newauth/(sum(newauth))
+    hubs = newhubs
+    auth = newauth
+  
+  hubs_dict = dict()
+  auth_dict = dict()
+  for node in G.nodes():
+    hubs_dict[node] = hubs[nodes[node]][0]
+    auth_dict[node] = auth[nodes[node]][0]
 
-  return hubs, auth
+  return hubs_dict, auth_dict
 
 def hits_hubs(G, hubs):
   nnode = [
@@ -204,8 +228,7 @@ def matrix_division(matrix, array, k):
   
   for i in range(0, matrix.shape[0], k):
     for j in range(0, matrix.shape[1], k):
-      print("I'm returning:", i, min(i+k,matrix.shape[1]))
-      yield j, matrix[i:min(i+k,matrix.shape[0]), j:min(j+k,matrix.shape[1])], array[j:min(j+k,matrix.shape[1])]
+      yield i, matrix[i:min(i+k,matrix.shape[0]), j:min(j+k,matrix.shape[1])], array[j:min(j+k,matrix.shape[1])]
 
 def parallel_multiply(j, matrix, array):
   return j, np.dot(matrix,array)
@@ -213,30 +236,45 @@ def parallel_multiply(j, matrix, array):
 def pagerank_parallel(G, jobs):
   n = G.number_of_nodes()
   pagerank = np.array(n*[1/n])
-  results = np.zeros((n,))
+  transition = np.zeros((n,n))
+  i = 0
+  nodes = dict()
+  for node in G.nodes():
+    nodes[node] = i
+    i += 1
+  for edge in G.edges():
+    transition[nodes[edge[1]]][nodes[edge[0]]] = 1/G.out_degree(edge[0])
   with Parallel(n_jobs=jobs) as parallel:
-    result = parallel(delayed(parallel_multiply)(j, matrix, array) for j, matrix, array in matrix_division(nx.adjacency_matrix(G).toarray(), pagerank, math.ceil(n/jobs)))
-    for res in result:
-      end_point = min(res[0] + math.ceil(n/jobs), n)
-      print(res[0], end_point, res[1].shape)
-      results[res[0]:end_point,] += res[1]
-  return pagerank
+    for _ in range(0, 2):
+      results = np.zeros((n,))
+      # MAP PART
+      result = parallel(delayed(parallel_multiply)(j, matrix, array) for j, matrix, array in matrix_division(transition, pagerank, math.ceil(n/jobs)))
+      # REDUCE PART
+      for res in result:
+        end_point = min(res[0] + math.ceil(n/jobs), n)
+        results[res[0]:end_point,] += res[1]
+      pagerank = results[:]
+  result_dict = dict() 
+  for node in G.nodes():
+    result_dict[node] = pagerank[nodes[node]]
+  return result_dict
 
 ###########################################################################
 ## Main test ##
 G = utils.load_node("email-Eu-core.txt", True, " ")
 
-print(pagerank_parallel(G, 6))
-
-"""cen = degree(G)
+cen = degree(G)
 clo = closeness(G)
 bet = btw(G)
 page_rank(G)
 h, a = hits(G)
+pagerank2 = page_rank2(G)
+res = pagerank_parallel(G, 6)
+hub, auth = hits2(G)
 
-hits_hubs(G,h)
-hits_authority(G,a)
-hits_average(G,h,a)
+hits_hubs(G,hub)
+hits_authority(G,auth)
+hits_average(G,hub, auth)
 
 
 ###########################################################################
@@ -302,13 +340,26 @@ av.sort(key=lambda tup:tup[1], reverse=True)
 #for u in av:
 #  print(u)
 
+res = [(k, v) for k, v in res.items()]
+res.sort(key=lambda tup:tup[1], reverse=True)
+
+#Stampa del pagerank calcolato in maniera parallela
+#for u in res:
+#  print(u)
+
+pagerank2 = [(k, v) for k, v in pagerank2.items()]
+pagerank2.sort(key=lambda tup:tup[1], reverse=True)
+
+#Stampa del pagerank calcolato in forma matriciale
+#for u in pagerank2:
+#  print(u)
+
 print("Degree: "+str(cen_sort[0]))
 print("Closeness: "+str(clo_sort[0]))
 print("Betweenness: "+str(bet_sort[0]))
-print("Page Rank: "+str(results[0]))
-print("Page Rank parallelo:"+pagerank_parallel(G, 4))
+print("Page Rank: "+ str(results[0:10]))
+print("Page Rank parallelo:"+ str(res[0]))
+print("Page Rank matriciale:" + str(pagerank2[0]))
 print("Hubs: "+str(hubs[0]))
 print("Authority: "+str(auth[0]))
 print("Average: "+str(av[0]))
-
-"""
