@@ -12,6 +12,11 @@ from scipy.sparse import linalg
 # Bottom-Up Approach. It works for undirected. It seems it must be tested on directed graph. A termination condition is not present.
 
 def hierarchical(G):
+    """Computes two clusters by following a bottom up approach.
+
+    Args:
+        G (networkx.Graph): The graph the algorithm must compute the clusters of
+    """
     pq = PriorityQueue()
     for u in G.nodes():
         for v in G.nodes():
@@ -51,6 +56,12 @@ def hierarchical(G):
 # The algorithm has been changed in order to manage not connected graphs.
 
 def two_means(G):
+    """The algorithm computes the clusters in the graph by applying a distance rules. Randomly select a neighbours of
+    nodes yet in solution and adds it to the cluster.
+
+    Args:
+        G (networkx.Graph): The graph the algorithm must compute the clusters of
+    """
     n=G.number_of_nodes()
     u = random.choice(list(G.nodes()))
     v = random.choice(list(nx.non_neighbors(G, u)))
@@ -89,6 +100,14 @@ def two_means(G):
 # Betweenness Algorithm. 
 
 def betweenness(G):
+    """The algorithm computes the betweenness of the nodes by computing BFS starting from all nodes.
+
+    Args:
+        G (networkx.Graph): The graph the algorithm must compute the clusters of
+
+    Returns:
+        dict, dict: Dictionary containing the edge betweenness and the node betweenness respectively
+    """
     edge_btw={frozenset(e):0 for e in G.edges()}
     node_btw={i:0 for i in G.nodes()}
 
@@ -129,6 +148,14 @@ def betweenness(G):
 # Girman-Newman Algorithm. A termination condition is not present. It works but the betweenness computation require an huge amount of time.
 
 def girman_newman(G):
+    """Computes the clusters of the graph passed as parameter by using the Girman-Newman algorithm.
+
+    Args:
+        G (networkx.Graph): The graph the algorithm must compute the clusters of
+
+    Returns:
+        list: List of connected components of modified graph
+    """
     graph=G.copy() 
     done = False
     while not done:
@@ -150,6 +177,15 @@ def girman_newman(G):
 # Spectral Algorithm working on Laplacian. It works for both directed and undirected graph. It's the only method that exploit direction information.
 
 def spectral(G, directed):
+    """The function computes the clusters by working on Laplacian Matrix.
+
+    Args:
+        G (networkx.Graph): The graph we must compute the clusters of
+        directed (bool): True if G is directed, else False.
+
+    Returns:
+        tuple: Tuple containing the two clusters computed by the algorithm.
+    """
     n=G.number_of_nodes()
     nodes=sorted(G.nodes())
 
