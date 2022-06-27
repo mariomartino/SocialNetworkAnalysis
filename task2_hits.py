@@ -101,7 +101,6 @@ def hits_hubs(G, hubs):
     ]
   
   G.update(nodes = nnode)
-  return G
 
 def hits_authority(G, authority):
   """A function that, taken graph and a dictionary representing the authority values, insert the Hits values as node properties in the graph.
@@ -118,7 +117,6 @@ def hits_authority(G, authority):
     ]
   
   G.update(nodes = nnode)
-  return G
 
 def hits_average(G, hubs, authority):
   """A function that, taken graph and two dictionary representing the Hits values, insert the Average Hits values as node properties in the graph.
@@ -136,7 +134,6 @@ def hits_average(G, hubs, authority):
     ]
   
   G.update(nodes = nnode)
-  return G
 
 def hits_parallel(G, jobs):
   """A Hits implementation that exploits multi-process programming.
@@ -181,3 +178,14 @@ def hits_parallel(G, jobs):
     hubs_dict[node] = hubs[nodes[node]]
     auth_dict[node] = auth[nodes[node]]
   return hubs_dict, auth_dict
+
+if __name__=="__main__":
+
+  G = load_node("email-Eu-core.txt", True, " ")
+
+  hubs, auth = hits(G)
+  hubs_matrix, auth_matrix = hits_matrices(G)
+  hubs_parallel, auth_parallel = hits_parallel(G, 6)
+  hits_hubs(G, hubs)
+  hits_authority(G, auth)
+  hits_average(G, hubs, auth)
