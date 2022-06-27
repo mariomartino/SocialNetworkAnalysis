@@ -353,7 +353,7 @@ def pagerank_parallel(G, jobs):
       jobs (int): The number of processes the funcion must create
 
   Returns:
-      dict: A dictionay containing the Pagerank values. Format: ("node":"value")
+      dict: A dictionary containing the Pagerank values. Format: ("node":"value")
   """
   n = G.number_of_nodes()
   pagerank = np.array(n*[1/n])
@@ -380,19 +380,68 @@ def pagerank_parallel(G, jobs):
     result_dict[node] = pagerank[nodes[node]]
   return result_dict
 
+def hits_parallel(G, jobs):
+  """A Hits implementation that exploits multi-process programming.
+
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute Hits values.
+      jobs (int): The number of processes the funcion must create
+
+  Returns:
+      dict: A dictionary containing the Pagerank values. Format: ("node":"value")
+  """
+  n = G.number_of_nodes()
+  hubs = np.array(n*[1])
+  auth = np.array(n*[1])
+  transition = np.zeros((n,n))
+  i = 0
+  nodes = dict()
+  for node in G.nodes():
+    nodes[node] = i
+    i += 1
+  for edge in G.edges():
+    transition[nodes[edge[0]]][nodes[edge[1]]] = 1
+  with Parallel(n_jobs=jobs) as parallel:
+    for _ in range(0, 100):
+      newhubs = np.zeros((n,))
+      newauth = np.zeros((n,))
+      # MAP PART
+      result_hubs = parallel(delayed(parallel_multiply)(j, matrix, array) for j, matrix, array in matrix_division(transition, auth, math.ceil(n/jobs)))
+      result_auth = parallel(delayed(parallel_multiply)(j, matrix, array) for j, matrix, array in matrix_division(transition.transpose(), hubs, math.ceil(n/jobs)))
+      # REDUCE PART
+      for res in result_hubs:
+        end_point = min(res[0] + math.ceil(n/jobs), n)
+        newhubs[res[0]:end_point,] += res[1]
+      for res in result_auth:
+        end_point = min(res[0] + math.ceil(n/jobs), n)
+        newauth[res[0]:end_point,] += res[1]
+      hubs = newhubs[:]/(sum(newhubs))
+      auth = newauth[:]/(sum(newauth))
+  hubs_dict = dict()
+  auth_dict = dict() 
+  for node in G.nodes():
+    hubs_dict[node] = hubs[nodes[node]]
+    auth_dict[node] = auth[nodes[node]]
+  return hubs_dict, auth_dict
+
 ###########################################################################
 ## Main test ##
 G = utils.load_node("email-Eu-core.txt", True, " ")
 
-cen = degree(G)
-clo = closeness(G)
-bet = btw(G)
-page_rank(G)
-h, a = hits(G)
-pagerank2 = page_rank2(G)
+# cen = degree(G)
+# clo = closeness(G)
+# bet = btw(G)
+# page_rank(G)
+# h, a = hits(G)
+# pagerank2 = page_rank2(G)
 res = pagerank_parallel(G, 6)
 hub, auth = hits2(G)
+hub_parallel, auth_parallel = hits_parallel(G, 6)
 
+print("PARALLEL: ", hub_parallel)
+print("NORMAL: ", hub)
+
+exit(0)
 hits_hubs(G,hub)
 hits_authority(G,auth)
 hits_average(G,hub, auth)
