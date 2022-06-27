@@ -5,6 +5,14 @@ import math
 import utils
 
 def page_rank(G):
+  """A PageRank implementation that iterates on nodes and edges.
+
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute the Pagerank value
+
+  Returns:
+      networkx.Graph: The modified graph including the Pagerank value
+  """
   num_nodes = G.number_of_nodes()
   rank = 1/num_nodes
   nnode = [
@@ -38,6 +46,14 @@ def page_rank(G):
   return G
 
 def page_rank2(G):
+  """A PageRank implementation that exploit matrices formulas.
+
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute the Pagerank value
+
+  Returns:
+      dict: A dictionary containing the Pagerank values. Format:("node":"value")
+  """
   n = G.number_of_nodes()
   i = 0
   nodes = dict()
@@ -59,76 +75,117 @@ def page_rank2(G):
   return result_dict
 
 def degree(G):
-    cen=dict()
-    for i in G.nodes():
-        cen[i]=G.degree(i)
-    return cen
+  """Method that returns the centrality of the nodes by returning their own degrees.
+
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute the centrality measure
+
+  Returns:
+      dict: A dictionary containing the Degree value. Format: ("node":"value")
+  """
+  cen=dict()
+  for i in G.nodes():
+      cen[i]=G.degree(i)
+  return cen
 
 def closeness(G):
-    cen=dict()
+  """Method that returns the centrality of the nodes by returning their closenesses.
 
-    for u in G.nodes():
-        visited=set()
-        visited.add(u)
-        queue=[u]
-        dist=dict()
-        dist[u] = 0
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute the centrality measure
 
-        while len(queue) > 0:
-            v = queue.pop(0)
-            for w in G[v]:
-                if w not in visited:
-                    queue.append(w)
-                    visited.add(w)
-                    dist[w]=dist[v]+1
-        cen[u]=sum(dist.values())
+  Returns:
+      dict: A dictionary containing the Closeness value. Format: ("node":"value")
+  """
+  cen=dict()
 
-    return cen
+  for u in G.nodes():
+      visited=set()
+      visited.add(u)
+      queue=[u]
+      dist=dict()
+      dist[u] = 0
+
+      while len(queue) > 0:
+          v = queue.pop(0)
+          for w in G[v]:
+              if w not in visited:
+                  queue.append(w)
+                  visited.add(w)
+                  dist[w]=dist[v]+1
+      cen[u]=sum(dist.values())
+
+  return cen
 
 def betweenness(G):
-    edge_btw={frozenset(e):0 for e in G.edges()}
-    node_btw={i:0 for i in G.nodes()}
+  """Method that returns the centrality of the nodes by returning their Betweenness value.
 
-    for s in G.nodes():
-        tree=[] 
-        spnum={i:0 for i in G.nodes()} 
-        parents={i:[] for i in G.nodes()} 
-        distance={i:-1 for i in G.nodes()} 
-        eflow={frozenset(e):0 for e in G.edges()} 
-        vflow={i:1 for i in G.nodes()} 
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute the centrality measure
 
-        queue=[s]
-        spnum[s]=1
-        distance[s]=0
-        while queue != []:
-            c=queue.pop(0)
-            tree.append(c)
-            for i in G[c]:
-                if distance[i] == -1: 
-                    queue.append(i)
-                    distance[i]=distance[c]+1
-                if distance[i] == distance[c]+1: 
-                    spnum[i]+=spnum[c]
-                    parents[i].append(c)
+  Returns:
+      dict, dict: Dictionaries containing the Betweenness value. Respectively the former represents the edge betweenness 
+      while the latter represents the node betweenness. Format: ("node":"value")
+  """
+  edge_btw={frozenset(e):0 for e in G.edges()}
+  node_btw={i:0 for i in G.nodes()}
 
-        while tree != []:
-            c=tree.pop()
-            for i in parents[c]:
-                eflow[frozenset({c,i})]+=vflow[c] * (spnum[i]/spnum[c])
-                vflow[i]+=eflow[frozenset({c,i})] 
-                edge_btw[frozenset({c,i})]+=eflow[frozenset({c,i})] 
-            if c != s:
-                node_btw[c]+=vflow[c] 
+  for s in G.nodes():
+      tree=[] 
+      spnum={i:0 for i in G.nodes()} 
+      parents={i:[] for i in G.nodes()} 
+      distance={i:-1 for i in G.nodes()} 
+      eflow={frozenset(e):0 for e in G.edges()} 
+      vflow={i:1 for i in G.nodes()} 
 
-    return edge_btw,node_btw
+      queue=[s]
+      spnum[s]=1
+      distance[s]=0
+      while queue != []:
+          c=queue.pop(0)
+          tree.append(c)
+          for i in G[c]:
+              if distance[i] == -1: 
+                  queue.append(i)
+                  distance[i]=distance[c]+1
+              if distance[i] == distance[c]+1: 
+                  spnum[i]+=spnum[c]
+                  parents[i].append(c)
+
+      while tree != []:
+          c=tree.pop()
+          for i in parents[c]:
+              eflow[frozenset({c,i})]+=vflow[c] * (spnum[i]/spnum[c])
+              vflow[i]+=eflow[frozenset({c,i})] 
+              edge_btw[frozenset({c,i})]+=eflow[frozenset({c,i})] 
+          if c != s:
+              node_btw[c]+=vflow[c] 
+
+  return edge_btw,node_btw
 
 def btw(G):
-    return betweenness(G)[1]
+  """Method that returns the centrality of the nodes by returning their betweenness.
+
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute the centrality measure
+
+  Returns:
+      dict: A dictionary containing the Node Betweenness value. Format: ("node":"value")
+  """
+  return betweenness(G)[1]
 
 ###########################################################################
 # Hits Implementation.
 
 def hits(G):
+  """A Hits implementation that iterates on nodes and edges.
+
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute the Hits values
+
+  Returns:
+      networkx.Graph: The modified graph including the Hits values
+  """
   hubs = dict( {v: 1 for v in G.nodes()} )
   auth = dict( {v: 1 for v in G.nodes()} )
 
@@ -165,6 +222,14 @@ def hits(G):
   return hubs, auth
 
 def hits2(G):
+  """A Hits implementation that exploit matrices formulas.
+
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute the Hits values
+
+  Returns:
+      dict: A dictionary containing the Hits values. Format:("node":"value")
+  """
   n = G.number_of_nodes()
   transition = np.zeros((n,n))
   hubs = np.array([[1] for i in range(n)])
@@ -196,6 +261,15 @@ def hits2(G):
   return hubs_dict, auth_dict
 
 def hits_hubs(G, hubs):
+  """A function that, taken graph and a dictionary representing the hubbiness values, insert the Hits values as node properties in the graph.
+
+  Args:
+      G (networkx.Graph): The graph on which the Hubbiness Values have been computed
+      hubs (dict): A dictionary containing the Hits values. Format:("node":"value")
+
+  Returns:
+      networkx.Graph: The graph updated with the Hubbiness Values.
+  """
   nnode = [
     (n, {"hubs": hubs[n]}) for n in G.nodes()
     ]
@@ -204,6 +278,15 @@ def hits_hubs(G, hubs):
   return G
 
 def hits_authority(G, authority):
+  """A function that, taken graph and a dictionary representing the authority values, insert the Hits values as node properties in the graph.
+
+  Args:
+      G (networkx.Graph): The graph on which the Authority Values have been computed
+      authority (dict): A dictionary containing the Hits values. Format:("node":"value")
+
+  Returns:
+      networkx.Graph: The graph updated with the Authority Values.
+  """
   nnode = [
     (n, {"authority": authority[n]}) for n in G.nodes()
     ]
@@ -212,6 +295,16 @@ def hits_authority(G, authority):
   return G
 
 def hits_average(G, hubs, authority):
+  """A function that, taken graph and two dictionary representing the Hits values, insert the Average Hits values as node properties in the graph.
+
+  Args:
+      G (networkx.Graph): The graph on which the Average Hits Values have been computed
+      hubs (dict): A dictionary containing the Hits values. Format:("node":"value")
+      authority (dict): A dictionary containing the Hits values. Format:("node":"value")
+
+  Returns:
+      networkx.Graph: The graph updated with the Average Hits Values.
+  """
   nnode = [
     (n, {"average": (authority[n]+hubs[n])/2}) for n in G.nodes()
     ]
@@ -221,19 +314,47 @@ def hits_average(G, hubs, authority):
 
 ###########################################################################
 # Hits Parallel Implementation. Map Reduce.
-# It doesn't work yet, I think there's a logic error on final results aggregation.
 # I must compute the sum for every row before to sum the column value (e.g same-i-sum before of same-j-sum).
 
 def matrix_division(matrix, array, k):
+  """A function that divides a matrix in blocks (K*K) and a vector in blocks (1*K).
+
+  Args:
+      matrix (np.array): The matrix the function must split
+      array (np.array): The array the function must split
+      k (int): size of the blocks
+
+  Yields:
+      int, np.array, np.array: The integer of the starting index of the blocks/array, then respectively the sub-matrix and the sub-array
+  """
   
   for i in range(0, matrix.shape[0], k):
     for j in range(0, matrix.shape[1], k):
       yield i, matrix[i:min(i+k,matrix.shape[0]), j:min(j+k,matrix.shape[1])], array[j:min(j+k,matrix.shape[1])]
 
 def parallel_multiply(j, matrix, array):
+  """A function that multiplicates the matrix and the array in input
+
+  Args:
+      j (int): The starting index of the matrix, it saves a split information to pass it to a reducer
+      matrix (np.array): The matrix to multiply
+      array (np.array): The array to multiply
+
+  Returns:
+      int, np.array: The 'j' value and the results of the multiplication
+  """
   return j, np.dot(matrix,array)
 
 def pagerank_parallel(G, jobs):
+  """A Pagerank implementation that exploits multi-process programming.
+
+  Args:
+      G (networkx.Graph): The graph on which the algorithm must compute Pagerank values.
+      jobs (int): The number of processes the funcion must create
+
+  Returns:
+      dict: A dictionay containing the Pagerank values. Format: ("node":"value")
+  """
   n = G.number_of_nodes()
   pagerank = np.array(n*[1/n])
   transition = np.zeros((n,n))
