@@ -1,4 +1,5 @@
 import networkx as nx
+import numpy as np
 
 def load_node(file_name, directed, sep = "\t"):
     if directed:
@@ -23,3 +24,33 @@ def debug_info(G, DIRECTED):
     else:
         print("Grafo fortemente connesso:", nx.is_strongly_connected(G))
     
+## TASK 2 UTILS
+
+def matrix_division(matrix, array, k):
+  """A function that divides a matrix in blocks (K*K) and a vector in blocks (1*K).
+
+  Args:
+      matrix (np.array): The matrix the function must split
+      array (np.array): The array the function must split
+      k (int): size of the blocks
+
+  Yields:
+      int, np.array, np.array: The integer of the starting index of the blocks/array, then respectively the sub-matrix and the sub-array
+  """
+  
+  for i in range(0, matrix.shape[0], k):
+    for j in range(0, matrix.shape[1], k):
+      yield i, matrix[i:min(i+k,matrix.shape[0]), j:min(j+k,matrix.shape[1])], array[j:min(j+k,matrix.shape[1])]
+
+def parallel_multiply(j, matrix, array):
+  """A function that multiplicates the matrix and the array in input
+
+  Args:
+      j (int): The starting index of the matrix, it saves a split information to pass it to a reducer
+      matrix (np.array): The matrix to multiply
+      array (np.array): The array to multiply
+
+  Returns:
+      int, np.array: The 'j' value and the results of the multiplication
+  """
+  return j, np.dot(matrix,array)
