@@ -27,6 +27,7 @@ def load_node(file_name, directed, sep = "\t"):
     return G
 
 def debug_info(G, DIRECTED):
+
     """Function printing the informations of the graph to show the correctness of graph loading
 
     Args:
