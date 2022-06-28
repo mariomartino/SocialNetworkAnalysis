@@ -12,6 +12,7 @@ def load_node(file_name, directed, sep = "\t"):
     Returns:
         networkx.Graph: The generated graph
     """
+
     if directed:
         G = nx.DiGraph()
     else:
@@ -34,6 +35,7 @@ def debug_info(G, DIRECTED):
         G (network.Graph): The graph we compute informations on
         DIRECTED (bool): True if G is directed, else False
     """
+    
     print("Numero di nodi:", G.number_of_nodes())
     print("Numero di archi:", G.number_of_edges())
     if not DIRECTED:
