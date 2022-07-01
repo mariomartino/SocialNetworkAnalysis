@@ -189,7 +189,7 @@ def spectral(G, directed):
     n=G.number_of_nodes()
     nodes=sorted(G.nodes())
 
-    if directed:
+    if not directed:
         L = nx.laplacian_matrix(G, nodes).asfptype()
     else:
         L = nx.directed_laplacian_matrix(G, nodes)
