@@ -160,7 +160,7 @@ sep = ","
 JOBS = 6
 
 if __name__ == "__main__":
-    G = load_node(file_name, DIRECTED, sep)
+    G = load_node("net_3", DIRECTED, sep = " ")
     if debug:
         debug_info(G, DIRECTED)
     start_time = time.time()

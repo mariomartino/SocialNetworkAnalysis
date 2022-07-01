@@ -103,7 +103,8 @@ def btw(G):
 
 if __name__ == "__main__":
 
-    G = load_node("email-Eu-core.txt", True, " ")
-    cen = degree(G)
-    clo = closeness(G)
+    # G = load_node("email-Eu-core.txt", True, " ")
+    G = load_node("net_3", False, sep = " ")
+    cen = degree(G)  # Really Fast
+    clo = closeness(G)  # Overtime
     edge_btw, node_btw = betweenness(G)
