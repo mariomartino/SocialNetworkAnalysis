@@ -18,14 +18,14 @@ if __name__ == "__main__":
 
     # start_time = time.time()
     # diam = parallel_diam(G, 6)
-    # print("La rete presenta un diametro pari a:", diam, "in ", start_time - time.time())
+    # print("La rete presenta un diametro pari a:", diam, "in ", time.time() - start_time)
 
     # OUTPUT:  
     # a) La rete presenta un diametro pari a: 3 in  -11411.527503490448
 
     # start_time = time.time()
     # triangles = parallel_triangles(G, 6)
-    # print("La rete presenta un numero di triangoli pari a:", triangles, "in ", start_time - time.time())
+    # print("La rete presenta un numero di triangoli pari a:", triangles, "in ", time.time() - start_time)
 
     # DEGREE Computation 
     
