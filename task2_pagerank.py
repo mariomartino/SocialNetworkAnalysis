@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from joblib import Parallel, delayed
 import math
@@ -20,7 +21,7 @@ def page_rank(G):
 
   G.update(nodes = nnode)
   
-  for i in range(0, 2):
+  for i in range(0, 100):
     for u in G.nodes(data="page_rank"):
       out_edge = G.out_edges(u)
       if u[1] != 0 and len(out_edge) != 0:
@@ -65,7 +66,7 @@ def page_rank_matrices(G):
   for edge in G.edges():
     transition[nodes[edge[1]]][nodes[edge[0]]] = 1/G.out_degree(edge[0])
 
-  for i in range(2):
+  for i in range(100):
     rank = np.dot(transition, rank)
 
   result_dict = dict() 
@@ -94,7 +95,7 @@ def pagerank_parallel(G, jobs):
   for edge in G.edges():
     transition[nodes[edge[1]]][nodes[edge[0]]] = 1/G.out_degree(edge[0])
   with Parallel(n_jobs=jobs) as parallel:
-    for _ in range(0, 2):
+    for _ in range(0, 100):
       results = np.zeros((n,))
       # MAP PART
       result = parallel(delayed(parallel_multiply)(j, matrix, array) for j, matrix, array in matrix_division(transition, pagerank, math.ceil(n/jobs)))
@@ -108,10 +109,20 @@ def pagerank_parallel(G, jobs):
     result_dict[node] = pagerank[nodes[node]]
   return result_dict
 
+DIRECTED = False
+
 if __name__ == "__main__":
 
     G = load_node("email-Eu-core.txt", True, " ")
+    if not DIRECTED:
+      G = G.to_directed()
 
+    start_time = time.time()
     pagerank_iter = page_rank(G)
+    print("PageRank iterativo:", time.time() - start_time)
+    start_time = time.time()
     page_rank_matrix = page_rank_matrices(G)
+    print("PageRank matriciale:", time.time() - start_time)
+    start_time = time.time()
     pagerank_parall = pagerank_parallel(G, 6)
+    print("PageRank parallelo:", time.time() - start_time)

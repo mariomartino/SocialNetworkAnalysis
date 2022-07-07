@@ -160,7 +160,7 @@ sep = ","
 JOBS = 6
 
 if __name__ == "__main__":
-    G = load_node(file_name, DIRECTED, sep)
+    G = load_node(file_name, DIRECTED, sep = sep)
     if debug:
         debug_info(G, DIRECTED)
     start_time = time.time()
@@ -171,4 +171,4 @@ if __name__ == "__main__":
     else:
         print("Numero di triangoli con algoritmo ottimale: ", directed_triangles(G), "in", (time.time() - start_time), "s")
     start_time = time.time()
-    print("Numero di triangoli con algoritmo parallelo: ", parallel_triangles(G, JOBS), "in", (time.time() - start_time), "s")
+    print("Numero di triangoli con algoritmo parallelo: ", parallel_triangles(G, JOBS, directed=DIRECTED), "in", (time.time() - start_time), "s")

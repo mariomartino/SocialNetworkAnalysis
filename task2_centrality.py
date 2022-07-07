@@ -1,4 +1,5 @@
 from utils import *
+import time
 
 def degree(G):
   """Method that returns the centrality of the nodes by returning their own degrees.
@@ -103,7 +104,15 @@ def btw(G):
 
 if __name__ == "__main__":
 
-    G = load_node("email-Eu-core.txt", True, " ")
+    G = load_node("Cit-HepTh.txt", True, "\t")
+    debug_info(G, True)
+    G = load_node("net_3", False, sep = " ")
+    start_time = time.time()
     cen = degree(G)
+    print("Degree:", time.time() - start_time)
+    start_time = time.time()
     clo = closeness(G)
+    print("Closeness:", time.time() - start_time)
+    start_time = time.time()
     edge_btw, node_btw = betweenness(G)
+    print("Betweenness:", time.time() - start_time)

@@ -147,7 +147,7 @@ def optimized_diameter(G, percentage=0.2, directed=False):
 
 debug = True
 
-DIRECTED = True
+DIRECTED = False
 # file_name = "musae_facebook_edges.csv"
 file_name = "Cit-HepTh.txt"
 # file_name = "ca-sandi_auths.mtx"
@@ -156,7 +156,7 @@ SAMPLE = 0.8
 JOBS = 6
 
 if __name__ == "__main__":
-    G = load_node(file_name, DIRECTED, sep)
+    G = load_node("net_3", DIRECTED, sep = " ")
     if debug:
         debug_info(G, DIRECTED)
     start_time = time.time()
