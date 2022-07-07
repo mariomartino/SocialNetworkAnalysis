@@ -1,6 +1,8 @@
 import networkx as nx
 import random
 import time
+
+import numpy as np
 from utils import debug_info, load_node
 from priorityq import PriorityQueue
 import random
@@ -183,7 +185,7 @@ def spectral(G, directed):
     Returns:
         tuple: Tuple containing the two clusters computed by the algorithm.
     """
-    MIN_NUMBER_ELEMENTS = 100
+    MIN_NUMBER_ELEMENTS = 1000
     nodes=sorted(G.nodes())
 
     if not directed:
@@ -191,11 +193,11 @@ def spectral(G, directed):
     else:
         L = nx.directed_laplacian_matrix(G, nodes)
 
-    w, eigenvectors = linalg.eigsh(L, 15, which="LM")
+    w, eigenvectors = linalg.eigsh(L, 15, which="SM")
 
     active_clusters = []
     solution = []
-    iterazione = 0
+    iterazione = 1
     
     active_clusters.append(set(nodes))
     
@@ -209,19 +211,19 @@ def spectral(G, directed):
                     c1.add(node)
                 else:
                     c2.add(node)
-            if len(c1) < MIN_NUMBER_ELEMENTS:
+            if len(c1) < MIN_NUMBER_ELEMENTS and len(c1) > 0:
                 solution.append(c1)
-            else:
+            elif len(c1) != 0:
                 new_active_clusters.append(c1)
-            if len(c2) < MIN_NUMBER_ELEMENTS:
+            if len(c2) < MIN_NUMBER_ELEMENTS and len(c2) > 0:
                 solution.append(c2)
-            else:
+            elif len(c2) != 0:
                 new_active_clusters.append(c2)
         active_clusters = new_active_clusters
         iterazione += 1
 
     solution.extend(active_clusters)
-    return len(solution), [nx.average_clustering(solution[i] for i in range(5))]
+    return len(solution), [nx.average_clustering(G, nodes=solution[i]) for i in range(5)]
 
 debug = True
 
@@ -230,8 +232,6 @@ DIRECTED = False
 file_name = "email-Eu-core.txt"
 # file_name = "Cit-HepTh.txt"
 sep = " "
-SAMPLE = 0.8
-JOBS = 6
 
 if __name__ == "__main__":
     G = load_node(file_name, DIRECTED, sep)
