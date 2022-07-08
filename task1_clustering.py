@@ -1,9 +1,8 @@
 import networkx as nx
-import math
 import random
-import itertools as it
-from joblib import Parallel, delayed
 import time
+
+import numpy as np
 from utils import debug_info, load_node
 from priorityq import PriorityQueue
 import random
@@ -186,7 +185,7 @@ def spectral(G, directed):
     Returns:
         tuple: Tuple containing the two clusters computed by the algorithm.
     """
-    n=G.number_of_nodes()
+    MIN_NUMBER_ELEMENTS = 1000
     nodes=sorted(G.nodes())
 
     if not directed:
@@ -194,27 +193,45 @@ def spectral(G, directed):
     else:
         L = nx.directed_laplacian_matrix(G, nodes)
 
-    w, v = linalg.eigsh(L,n-1)
+    w, eigenvectors = linalg.eigsh(L, 15, which="SM")
 
-    c1= set()
-    c2=set()
-    for i in range(n):
-        if v[i,0] < 0:
-            c1.add(nodes[i])
-        else:
-            c2.add(nodes[i])
-    return (c1, c2)
+    active_clusters = []
+    solution = []
+    iterazione = 1
+    
+    active_clusters.append(set(nodes))
+    
+    while (len(active_clusters) > 0 and iterazione < 15):
+        new_active_clusters = []
+        for c in active_clusters:
+            c1 = set()
+            c2 = set()
+            for node in c:
+                if eigenvectors[int(node),iterazione] > 0:
+                    c1.add(node)
+                else:
+                    c2.add(node)
+            if len(c1) < MIN_NUMBER_ELEMENTS and len(c1) > 0:
+                solution.append(c1)
+            elif len(c1) != 0:
+                new_active_clusters.append(c1)
+            if len(c2) < MIN_NUMBER_ELEMENTS and len(c2) > 0:
+                solution.append(c2)
+            elif len(c2) != 0:
+                new_active_clusters.append(c2)
+        active_clusters = new_active_clusters
+        iterazione += 1
 
+    solution.extend(active_clusters)
+    return len(solution), [nx.average_clustering(G, nodes=solution[i]) for i in range(5)]
 
 debug = True
 
-DIRECTED = True
+DIRECTED = False
 # file_name = "musae_facebook_edges.csv"
 file_name = "email-Eu-core.txt"
 # file_name = "Cit-HepTh.txt"
 sep = " "
-SAMPLE = 0.8
-JOBS = 6
 
 if __name__ == "__main__":
     G = load_node(file_name, DIRECTED, sep)

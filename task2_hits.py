@@ -54,7 +54,7 @@ def hits_matrices(G):
       G (networkx.Graph): The graph on which the algorithm must compute the Hits values
 
   Returns:
-      dict: A dictionary containing the Hits values. Format:("node":"value")
+      dict, dict: A dictionary containing the Hits values. Format:("node":"value")
   """
   n = G.number_of_nodes()
   transition = np.zeros((n,n))
