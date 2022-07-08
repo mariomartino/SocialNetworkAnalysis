@@ -1,6 +1,8 @@
 import networkx as nx
 import random
 
+import numpy as np
+
 from task2_hits import hits_average, hits_matrices
 
 class AdService:
@@ -20,18 +22,19 @@ class AdService:
                 self.ectrs[u] = dict()
                 for w in self.rev.keys():
                     self.ectrs[u][w] = 0
-        
-        for u in self.history[t-1]["activated"].keys():
-            winner = self.history[t-1]["activated"][u]["ad"]
-            chosen = 0
-            for j in range(t):
-                if u in self.history[j]["activated"] and self.history[j]["activated"][u]["ad"] == winner:
-                    chosen += 1
-            if chosen > 1:
-                self.ectrs[u][winner] = (self.ectrs[u][winner] + self.history[t-1]["activated"][u]["payment"])*chosen/(chosen+1)
-            else:
-                self.ectrs[u][winner] = (self.ectrs[u][winner] + self.history[t-1]["activated"][u]["payment"])
-        
+        else:
+            for u in self.history[t-1]["activated"].keys():
+                winner = self.history[t-1]["activated"][u]["ad"]
+                chosen = 0
+                clicked = 0
+                for j in range(t):
+                    if u in self.history[j]["activated"] and self.history[j]["activated"][u]["ad"] == winner:
+                        chosen += 1
+                        if self.history[j]["activated"][u]["clicked"]:
+                            clicked += 1
+                
+                self.ectrs[u][winner] = clicked/chosen
+            
     # non convince al 100%, ma funziona 
     def __seed(self, t):
         seeds = set()
@@ -48,15 +51,24 @@ class AdService:
                 break
         return seeds
 
-    def __epsilon_greedy_bids(self, bids):
-        pass
+
+    def __epsilon_greedy_bids(self, bids, u):
+        r1 = random.random()
+        if r1 < 0.05:
+            arm = random.choice(bids.keys()) ## forse da fare il cast in list
+        else:
+            arms = []
+            for w in self.ectrs[u].keys():
+                arms.append((w, self.ectrs[u][w] * self.rev[w]))
+            arm = max(arms, key = lambda k:k[1])
+        return arm[0]
 
     #A possible choice for payment function
     def __first_price(bids, winner):
         return bids[winner]
 
     #Another possible choice for the payment function
-    def __second_price(bids, winner):
+    def __second_price(self, bids, winner):
         pay=-1
         for i in bids.keys():
             if i != winner and bids[i] > pay:
@@ -67,32 +79,65 @@ class AdService:
     # MOCK-UP IMPLEMENTATION: It always announces that the winner will be the advertiser with the highest bid and it will pay the second highest bid
     # takes the time step t and node u, returns the select function and the payment function 
     def __annouce(self, t, u):
-        return self.__higher_bid, self.__second_price
+        return self.__epsilon_greedy_bids, self.__second_price
 
     #NOT IMPLEMENTED. Simply returns a random bid
     # takes the time step t, 
     # advertiser i, 
     # node u, 
     # select function, 
-    # payment function and returs the bid for i
+    # payment function 
+    # returs the bid for i
     def __best_response(self, t, i, u, select, payment):
         return random.random()
+    
+    def cascade(self, seed):
+        # active represents the set S_t in the description above
+        active = seed
+        while len(active) > 0:
+            for i in active:
+                #This allows to keep track of S_<t, i.e. the set of nodes activated before time t
+                self.G.nodes[i]['act'] = True
+            # newactive represents the set S_{t+1}
+            newactive = set()
+            for i in active:
+                for j in self.G[i]:
+                    if 'act' not in self.G.nodes[j]:
+                        r=random.random()
+                        if r <= self.p[i][j]:
+                            newactive.add(j)
+            active = newactive
+        
+        nodes_active = list(nx.get_node_attributes(self.G, 'act').keys())
+        
+        return nodes_active
 
-    #NOT IMPLEMENTED. It simply adds to the revenue a random integer for each node if the oracle states that a click occurs for a randomly selected bidder
     def run(self, t, rctrs):
-        #rev = 0
-        #for u in self.G.nodes():
-        #    i = random.choice(range(len(self.rev.keys())))
-        #    if rctrs(u,i):
-        #        rev += random.randint(1, 10)
-        #return rev
         rev = 0
-        new_ectrs = self.__update_ectrs(t)
+        self.history = dict()
+        self.__update_ectrs(t)
+        self.history[t] = dict()
         self.history[t]["seed"] = self.__seed(t)
-        for u in self.history[t]:
-            i = random.choice(range(len(self.rev.keys())))
+        self.history[t]["activated"] = dict()
+        active = self.cascade(self.history[t]["seed"])
+        for u in active:
+            self.history[t]["activated"][u] = dict()
             winner, pay = self.__annouce(t,u)
-            bid = self.__best_response(t,i,u,winner,pay)
-            if rctrs(u,i):
-                rev += self.rev[i]
+            self.history[t]["activated"][u]["bids"] = dict()
+            for i in self.rev.keys():
+                bid = self.__best_response(t,i,u,winner,pay)
+                self.history[t]["activated"][u]["bids"][i] = bid
+
+            ad = winner(self.history[t]["activated"][u]["bids"], u)
+            payment = pay(self.history[t]["activated"][u]["bids"], ad)
+
+            if rctrs(u,ad):
+                self.history[t]["activated"][u]["clicked"] = True
+                rev += payment
+            else:
+                self.history[t]["activated"][u]["clicked"] = False
+
+            self.history[t]["activated"][u]["ad"] = ad
+            self.history[t]["activated"][u]["payment"] = payment
+        
         return rev

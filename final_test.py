@@ -1,6 +1,6 @@
 import networkx as nx
 import random
-from lesson4 import affiliationG
+from utils import affiliationG
 from final_mockup import AdService
 
 ctrs = dict()
@@ -19,7 +19,7 @@ def input_data():
     rev = dict()
     for i in range(5):
         rev[i] = random.randrange(10, 90, 5)/100
-    B = n/5000
+    B = n/2000
     
     T = 5000
     #for the oracle
