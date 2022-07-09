@@ -55,13 +55,14 @@ class AdService:
     def __epsilon_greedy_bids(self, bids, u):
         r1 = random.random()
         if r1 < 0.05:
-            arm = random.choice(bids.keys()) ## forse da fare il cast in list
+            arm = random.choice(list(bids.keys()))
+            return arm
         else:
             arms = []
             for w in self.ectrs[u].keys():
                 arms.append((w, self.ectrs[u][w] * self.rev[w]))
             arm = max(arms, key = lambda k:k[1])
-        return arm[0]
+            return arm[0]
 
     #A possible choice for payment function
     def __first_price(bids, winner):
@@ -114,7 +115,6 @@ class AdService:
 
     def run(self, t, rctrs):
         rev = 0
-        self.history = dict()
         self.__update_ectrs(t)
         self.history[t] = dict()
         self.history[t]["seed"] = self.__seed(t)
