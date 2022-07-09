@@ -60,7 +60,7 @@ class AdService:
         else:
             arms = []
             for w in self.ectrs[u].keys():
-                arms.append((w, self.ectrs[u][w] * self.rev[w]))
+                arms.append((w, self.ectrs[u][w] * bids[w])) 
             arm = max(arms, key = lambda k:k[1])
             return arm[0]
 
