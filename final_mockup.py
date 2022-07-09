@@ -37,18 +37,23 @@ class AdService:
             
     # non convince al 100%, ma funziona 
     def __seed(self, t):
-        seeds = set()
-        hubs, auth = hits_matrices(self.G)
-        hits_average(self.G, hubs, auth)
+        
+        if t==0:
+            seeds = set()
+            hubs, auth = hits_matrices(self.G)
+            hits_average(self.G, hubs, auth)
 
-        av = list(self.G.nodes(data="average"))
-        av.sort(key=lambda tup:tup[1], reverse=True)
+            av = list(self.G.nodes(data="average"))
+            av.sort(key=lambda tup:tup[1], reverse=True)
 
-        for u in av:
-            if len(seeds) < self.B:
-                seeds.add(u[0])
-            else:
-                break
+            for u in av:
+                if len(seeds) < self.B:
+                    seeds.add(u[0])
+                else:
+                    break
+        else:
+            seeds = self.history[t-1]["seeds"]
+
         return seeds
 
 
