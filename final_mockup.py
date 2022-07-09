@@ -22,18 +22,18 @@ class AdService:
                 self.ectrs[u] = dict()
                 for w in self.rev.keys():
                     self.ectrs[u][w] = 0
-        else:
-            for u in self.history[t-1]["activated"].keys():
-                winner = self.history[t-1]["activated"][u]["ad"]
-                chosen = 0
-                clicked = 0
-                for j in range(t):
-                    if u in self.history[j]["activated"] and self.history[j]["activated"][u]["ad"] == winner:
-                        chosen += 1
-                        if self.history[j]["activated"][u]["clicked"]:
-                            clicked += 1
-                
-                self.ectrs[u][winner] = clicked/chosen
+            return
+        for u in self.history[t-1]["activated"].keys():
+            winner = self.history[t-1]["activated"][u]["ad"]
+            chosen = 0
+            clicked = 0
+            for j in range(t):
+                if u in self.history[j]["activated"] and self.history[j]["activated"][u]["ad"] == winner:
+                    chosen += 1
+                    if self.history[j]["activated"][u]["clicked"]:
+                        clicked += 1
+            
+            self.ectrs[u][winner] = clicked/chosen
             
     # non convince al 100%, ma funziona 
     def __seed(self, t):
