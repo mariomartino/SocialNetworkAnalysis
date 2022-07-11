@@ -46,11 +46,8 @@ class AdService:
             av = list(self.G.nodes(data="average"))
             av.sort(key=lambda tup:tup[1], reverse=True)
 
-            for u in av:
-                if len(seeds) < self.B:
-                    seeds.add(u[0])
-                else:
-                    break
+            seeds.add(av[i][0] for i in range(self.B))
+
         else:
             seeds = self.history[t-1]["seeds"]
 
@@ -95,7 +92,21 @@ class AdService:
     # payment function 
     # returs the bid for i
     def __best_response(self, t, i, u, select, payment):
-        return random.random()
+        
+        if t == 0:
+            return self.rev[i]
+        
+        tmp_bids = self.history[t-1]["activated"][u]["bids"]
+        tmp_bids[i] = self.rev[i]
+        tmp_winner = select(tmp_bids, u)
+        tmp_pay = payment(tmp_bids, tmp_winner)
+
+        if tmp_winner == i and tmp_pay == self.rev[i]:   # ADV i HA VINTO ED È UNA FIRST PRICE
+            tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
+            second = tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
+            return (self.rev[i] + second)/2     # CERCO DI PAGARE DI MENO
+        else:   # È UNA SECOND PRICE O LA VALUTO MENO DEGLI ALTRI
+            return self.rev[i] 
     
     def cascade(self, seed):
         # active represents the set S_t in the description above
