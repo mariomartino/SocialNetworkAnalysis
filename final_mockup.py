@@ -103,7 +103,7 @@ class AdService:
             tmp_bids = self.history[t-1]["activated"][u]["bids"].copy()
             tmp_bids[i] = self.rev[i]
         else:
-            tmp_bids = self.rev
+            tmp_bids = self.rev.copy()
         
         array_winner = []
         for _ in range(10):
