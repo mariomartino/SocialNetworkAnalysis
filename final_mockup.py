@@ -139,7 +139,7 @@ class AdService:
         rev = 0
         self.__update_ectrs(t)
         self.history[t] = dict()
-        self.history[t]["seed"] = self.__seed(t)
+        self.history[t]["seeds"] = self.__seed(t)
         self.history[t]["activated"] = dict()
         active = self.cascade(self.history[t]["seed"])
         for u in active:
