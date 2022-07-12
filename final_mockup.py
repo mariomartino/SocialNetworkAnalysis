@@ -100,7 +100,7 @@ class AdService:
             return self.rev[i]
         
         if u in self.history[t-1]["activated"]:
-            tmp_bids = self.history[t-1]["activated"][u]["bids"]
+            tmp_bids = self.history[t-1]["activated"][u]["bids"].copy()
             tmp_bids[i] = self.rev[i]
         else:
             tmp_bids = self.rev
@@ -109,7 +109,7 @@ class AdService:
         for _ in range(10):
             array_winner.append(select(tmp_bids, u))
         counter = Counter(array_winner)
-        tmp_winner = counter.most_common(1)
+        tmp_winner = counter.most_common(1)[0][0]
         tmp_pay = payment(tmp_bids, tmp_winner)
 
         if tmp_winner == i and tmp_pay == self.rev[i]:   # ADV i HA VINTO ED È UNA FIRST PRICE
