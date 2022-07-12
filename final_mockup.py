@@ -116,8 +116,10 @@ class AdService:
             tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
             second = tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
             return (self.rev[i] + second)/2     # CERCO DI PAGARE DI MENO
-        else:   # È UNA SECOND PRICE O LA VALUTO MENO DEGLI ALTRI
-            return self.rev[i] 
+        elif tmp_winner == i:   # È UNA SECOND PRICE O LA VALUTO MENO DEGLI ALTRI
+            return self.rev[i]
+        else:
+            return 0
     
     def cascade(self, seed):
         active = seed
