@@ -4,7 +4,7 @@ from collections import Counter
 
 import numpy as np
 
-from task2_hits import hits_average, hits_matrices
+from task2_hits import hits_average, hits_hubs, hits_matrices
 
 class AdService:
     
@@ -43,9 +43,9 @@ class AdService:
 
             seeds = set()
             hubs, auth = hits_matrices(self.G)
-            hits_average(self.G, hubs, auth)  ## USEREI HITS HUBBINESS PER FONDAMENTO TEORICO
+            hits_hubs(self.G, hubs)  ## USEREI HITS HUBBINESS PER FONDAMENTO TEORICO
 
-            av = list(self.G.nodes(data="average"))
+            av = list(self.G.nodes(data="hubs"))
             av.sort(key=lambda tup:tup[1], reverse=True)
 
             seeds.add(av[i][0] for i in range(self.B))
