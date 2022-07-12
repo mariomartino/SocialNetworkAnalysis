@@ -44,8 +44,8 @@ revenue = 0
 print("Start")
 start = time.time()
 for step in range(T):
-    print(step)
     revenue += ads.run(step, oracle)
+    print(step, revenue)
 
 print("End")
 print(time.time() - start)

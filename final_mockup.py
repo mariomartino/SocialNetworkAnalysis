@@ -48,7 +48,8 @@ class AdService:
             av = list(self.G.nodes(data="hubs"))
             av.sort(key=lambda tup:tup[1], reverse=True)
 
-            seeds.add(av[i][0] for i in range(self.B))
+            for i in range(self.B):
+                seeds.add(av[i][0]) 
 
         else:
             seeds = self.history[t-1]["seeds"]
@@ -69,7 +70,7 @@ class AdService:
             return arm[0]
 
     #A possible choice for payment function
-    def __first_price(bids, winner):
+    def __first_price(self, bids, winner):
         return bids[winner]
 
     #Another possible choice for the payment function
@@ -98,8 +99,12 @@ class AdService:
         if t == 0:
             return self.rev[i]
         
-        tmp_bids = self.history[t-1]["activated"][u]["bids"]
-        tmp_bids[i] = self.rev[i]
+        if u in self.history[t-1]["activated"]:
+            tmp_bids = self.history[t-1]["activated"][u]["bids"]
+            tmp_bids[i] = self.rev[i]
+        else:
+            tmp_bids = self.rev
+        
         array_winner = []
         for _ in range(10):
             array_winner.append(select(tmp_bids, u))
@@ -131,7 +136,7 @@ class AdService:
         nodes_active = list(nx.get_node_attributes(self.G, 'act').keys())
 
         for u in nodes_active:
-            del self.G.node[u]["act"]
+            del self.G.nodes[u]["act"]
         
         return nodes_active
 
@@ -143,7 +148,7 @@ class AdService:
         self.history[t] = dict()
         self.history[t]["seeds"] = self.__seed(t)
         self.history[t]["activated"] = dict()
-        active = self.cascade(self.history[t]["seed"])
+        active = self.cascade(self.history[t]["seeds"])
         for u in active:
             self.history[t]["activated"][u] = dict()
             winner, pay = self.__annouce(t,u)
