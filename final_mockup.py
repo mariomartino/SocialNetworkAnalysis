@@ -1,5 +1,6 @@
 import networkx as nx
 import random
+from collections import Counter
 
 import numpy as np
 
@@ -21,27 +22,28 @@ class AdService:
             for u in self.G.nodes():
                 self.ectrs[u] = dict()
                 for w in self.rev.keys():
-                    self.ectrs[u][w] = 0
+                    self.ectrs[u][w] = 0, 0  ## TODO: INIZIALIZZA AL MINIMO: 0.1
             return
-        for u in self.history[t-1]["activated"].keys():
+        for u in self.history[t-1]["activated"].keys():  ## POSSIAMO MODIFICARE ECTRS MEMORIZZANDO ANCHE CHOSEN ?
+
             winner = self.history[t-1]["activated"][u]["ad"]
-            chosen = 0
-            clicked = 0
-            for j in range(t):
-                if u in self.history[j]["activated"] and self.history[j]["activated"][u]["ad"] == winner:
-                    chosen += 1
-                    if self.history[j]["activated"][u]["clicked"]:
-                        clicked += 1
+            chosen = self.ectrs[u][winner][1]
+            last_ctr = self.ectrs[u][winner][0]
+            clicked = last_ctr*(chosen - 1)
+            ## TODO: Incrementa chosen
+            if self.history[t-1]["activated"][u]["clicked"]:
+                clicked += 1
             
-            self.ectrs[u][winner] = clicked/chosen
+            self.ectrs[u][winner] = clicked/chosen, chosen
             
     # non convince al 100%, ma funziona 
     def __seed(self, t):
         
         if t==0:
+
             seeds = set()
             hubs, auth = hits_matrices(self.G)
-            hits_average(self.G, hubs, auth)
+            hits_average(self.G, hubs, auth)  ## USEREI HITS HUBBINESS PER FONDAMENTO TEORICO
 
             av = list(self.G.nodes(data="average"))
             av.sort(key=lambda tup:tup[1], reverse=True)
@@ -55,14 +57,14 @@ class AdService:
 
 
     def __epsilon_greedy_bids(self, bids, u):
-        r1 = random.random()
-        if r1 < 0.05:
+        r = random.random()
+        if r < 0.05:
             arm = random.choice(list(bids.keys()))
             return arm
         else:
             arms = []
             for w in self.ectrs[u].keys():
-                arms.append((w, self.ectrs[u][w] * bids[w])) 
+                arms.append((w, self.ectrs[u][w][0] * bids[w])) 
             arm = max(arms, key = lambda k:k[1])
             return arm[0]
 
@@ -98,7 +100,11 @@ class AdService:
         
         tmp_bids = self.history[t-1]["activated"][u]["bids"]
         tmp_bids[i] = self.rev[i]
-        tmp_winner = select(tmp_bids, u)
+        array_winner = []
+        for _ in range(10):
+            array_winner.append(select(tmp_bids, u))
+        counter = Counter(array_winner)
+        tmp_winner = counter.most_common(1)
         tmp_pay = payment(tmp_bids, tmp_winner)
 
         if tmp_winner == i and tmp_pay == self.rev[i]:   # ADV i HA VINTO ED È UNA FIRST PRICE
@@ -109,13 +115,10 @@ class AdService:
             return self.rev[i] 
     
     def cascade(self, seed):
-        # active represents the set S_t in the description above
         active = seed
         while len(active) > 0:
             for i in active:
-                #This allows to keep track of S_<t, i.e. the set of nodes activated before time t
                 self.G.nodes[i]['act'] = True
-            # newactive represents the set S_{t+1}
             newactive = set()
             for i in active:
                 for j in self.G[i]:
@@ -126,6 +129,9 @@ class AdService:
             active = newactive
         
         nodes_active = list(nx.get_node_attributes(self.G, 'act').keys())
+
+        for u in nodes_active:
+            del self.G.node[u]["act"]
         
         return nodes_active
 
@@ -152,6 +158,7 @@ class AdService:
                 rev += payment
             else:
                 self.history[t]["activated"][u]["clicked"] = False
+                payment = 0 # CREDO PERCHÈ NON CI SONO PAGAMENTI
 
             self.history[t]["activated"][u]["ad"] = ad
             self.history[t]["activated"][u]["payment"] = payment
