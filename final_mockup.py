@@ -22,15 +22,15 @@ class AdService:
             for u in self.G.nodes():
                 self.ectrs[u] = dict()
                 for w in self.rev.keys():
-                    self.ectrs[u][w] = 0, 0  ## TODO: INIZIALIZZA AL MINIMO: 0.1
+                    self.ectrs[u][w] = .1, 0
             return
-        for u in self.history[t-1]["activated"].keys():  ## POSSIAMO MODIFICARE ECTRS MEMORIZZANDO ANCHE CHOSEN ?
+        for u in self.history[t-1]["activated"].keys():
 
             winner = self.history[t-1]["activated"][u]["ad"]
             chosen = self.ectrs[u][winner][1]
             last_ctr = self.ectrs[u][winner][0]
-            clicked = last_ctr*(chosen - 1)
-            ## TODO: Incrementa chosen
+            clicked = last_ctr*(chosen)
+            chosen += 1
             if self.history[t-1]["activated"][u]["clicked"]:
                 clicked += 1
             
@@ -136,6 +136,8 @@ class AdService:
         return nodes_active
 
     def run(self, t, rctrs):
+        if t == 0:
+            self.history = dict()
         rev = 0
         self.__update_ectrs(t)
         self.history[t] = dict()

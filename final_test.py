@@ -20,7 +20,7 @@ def input_data():
     rev = dict()
     for i in range(5):
         rev[i] = random.randrange(10, 90, 5)/100
-    B = n/4000
+    B = 1400
     
     T = 5000
     #for the oracle
@@ -43,7 +43,6 @@ ads=AdService(G, p, rev, B)
 revenue = 0
 print("Start")
 start = time.time()
-ads.history = dict()
 for step in range(T):
     print(step)
     revenue += ads.run(step, oracle)
