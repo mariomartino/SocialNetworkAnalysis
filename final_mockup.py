@@ -4,19 +4,32 @@ from collections import Counter
 
 import numpy as np
 
-from task2_hits import hits_average, hits_hubs, hits_matrices
+from task2_hits import hits_hubs, hits_matrices
 
 class AdService:
     
     def __init__(self, G, p, rev, B):
-        self.G = G # network
-        self.p = p # dictionary of diffusion probabilities
-        self.rev = rev # dictionary of each advertiser of its revenue per click
-        self.B = B # integer
-        self.ectrs = None # dictionary for each node u and advertiser i, contains an estimate of clickthough rate of i on u
-        self.history = None # collects for each time step, which seeds have been selected
+        """Initialize the object AdService, by assigning the values passed as parameter.
+
+        Args:
+            G (networkx.Graph): The graph on which the system runs the Ad Service
+            p (dict): Dictionary containing the diffusion probabilities
+            rev (dict): Dictionary containing for each advertiser its revenue per click
+            B (int): The allowed number of seeds for step
+        """
+        self.G = G 
+        self.p = p 
+        self.rev = rev
+        self.B = B 
+        self.ectrs = None 
+        self.history = None
     
     def __update_ectrs(self, t):
+        """Il metodo aggiorna la stima dei Clickthrough Rates basandosi sulla storia dall'istante 0 all'istante t.
+
+        Args:
+            t (int): Timestep cui il metodo calcola la stima
+        """
         if t == 0:
             self.ectrs=dict()
             for u in self.G.nodes():
@@ -36,14 +49,22 @@ class AdService:
             
             self.ectrs[u][winner] = clicked/chosen, chosen
             
-    # non convince al 100%, ma funziona 
     def __seed(self, t):
+        """Computes the seeds at the timestep t. The seeds are computed in the first iteration and then
+        reported in the successive steps.
+
+        Args:
+            t (int): Timestep in which the seeds are computed
+
+        Returns:
+            set: The set containing the seeds nodes
+        """
         
         if t==0:
 
             seeds = set()
             hubs, auth = hits_matrices(self.G)
-            hits_hubs(self.G, hubs)  ## USEREI HITS HUBBINESS PER FONDAMENTO TEORICO
+            hits_hubs(self.G, hubs)
 
             av = list(self.G.nodes(data="hubs"))
             av.sort(key=lambda tup:tup[1], reverse=True)
@@ -122,6 +143,14 @@ class AdService:
             return 0
     
     def cascade(self, seed):
+        """The method implements an Indipendent Cascade Model for Information Diffusion.
+
+        Args:
+            seed (set): The set of the nodes active in the first step
+
+        Returns:
+            list: The list of all nodes active at the end
+        """
         active = seed
         while len(active) > 0:
             for i in active:
