@@ -137,10 +137,8 @@ class AdService:
             tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
             second = tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
             return (self.rev[i] + second)/2     # CERCO DI PAGARE DI MENO
-        elif tmp_winner == i:   # È UNA SECOND PRICE O LA VALUTO MENO DEGLI ALTRI
+        else:   # È UNA SECOND PRICE O LA VALUTO MENO DEGLI ALTRI
             return self.rev[i]
-        else:
-            return 0
     
     def cascade(self, seed):
         """The method implements an Indipendent Cascade Model for Information Diffusion.
@@ -168,7 +166,7 @@ class AdService:
 
         for u in nodes_active:
             del self.G.nodes[u]["act"]
-        
+
         return nodes_active
 
     def run(self, t, rctrs):
@@ -200,5 +198,5 @@ class AdService:
 
             self.history[t]["activated"][u]["ad"] = ad
             self.history[t]["activated"][u]["payment"] = payment
-        
+            
         return rev
