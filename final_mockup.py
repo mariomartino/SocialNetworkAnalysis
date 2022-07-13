@@ -46,8 +46,11 @@ class AdService:
             chosen += 1
             if self.history[t-1]["activated"][u]["clicked"]:
                 clicked += 1
-            
-            self.ectrs[u][winner] = clicked/chosen, chosen
+
+            ctr = max(clicked/chosen, .1)
+            ctr = min(ctr, .6)
+
+            self.ectrs[u][winner] = ctr, chosen
             
     def __seed(self, t):
         """Computes the seeds at the timestep t. The seeds are computed in the first iteration and then
@@ -133,12 +136,15 @@ class AdService:
         tmp_winner = counter.most_common(1)[0][0]
         tmp_pay = payment(tmp_bids, tmp_winner)
 
-        if tmp_winner == i and tmp_pay == self.rev[i]:   # ADV i HA VINTO ED È UNA FIRST PRICE
-            tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
-            second = tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
-            return (self.rev[i] + second)/2     # CERCO DI PAGARE DI MENO
-        else:   # È UNA SECOND PRICE O LA VALUTO MENO DEGLI ALTRI
-            return self.rev[i]
+        tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
+        second = tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
+
+        if tmp_winner == i and tmp_pay == self.rev[i]: # FIRST PRICE
+            return (self.rev[i] + second)/2
+        elif tmp_winner == i and tmp_pay < self.rev[i]: # SECOND PRICE
+            return (self.rev[i] + tmp_pay)/2
+        else: # NON DEVO MOSTRARMI, VALE PIÙ DI QUANTO LA VALUTO
+            return min(self.rev[i], second)
     
     def cascade(self, seed):
         """The method implements an Indipendent Cascade Model for Information Diffusion.
