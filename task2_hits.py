@@ -69,6 +69,7 @@ def hits_matrices(G):
 
   for edge in G.edges():
     transition[nodes[edge[0]]][nodes[edge[1]]] = 1
+    transition[nodes[edge[1]]][nodes[edge[0]]] = 1
 
   for i in range(100):
     newhubs = np.dot(transition, auth)
@@ -156,6 +157,7 @@ def hits_parallel(G, jobs):
     i += 1
   for edge in G.edges():
     transition[nodes[edge[0]]][nodes[edge[1]]] = 1
+    transition[nodes[edge[1]]][nodes[edge[0]]] = 1
   with Parallel(n_jobs=jobs) as parallel:
     for _ in range(0, 100):
       newhubs = np.zeros((n,))
