@@ -8,6 +8,7 @@ from task2_hits import hits_hubs, hits_matrices
 
 class AdService:
     
+
     def __init__(self, G, p, rev, B):
         """Initialize the object AdService, by assigning the values passed as parameter.
 
@@ -24,6 +25,7 @@ class AdService:
         self.ectrs = None 
         self.history = None
     
+
     def __update_ectrs(self, t):
         """Il metodo aggiorna la stima dei Clickthrough Rates basandosi sulla storia dall'istante 0 all'istante t.
 
@@ -52,6 +54,7 @@ class AdService:
 
             self.ectrs[u][winner] = ctr, chosen
             
+
     def __seed(self, t):
         """Computes the seeds at the timestep t. The seeds are computed in the first iteration and then
         reported in the successive steps.
@@ -82,6 +85,15 @@ class AdService:
 
 
     def __epsilon_greedy_bids(self, bids, u):
+        """The method implements an Epsilon-Greedy algorithm that select the winner advertiser.
+
+        Args:
+            bids (dict): The dictionary containing a bid for each advertiser
+            u (int): The integer representing the node the system is evaluating
+
+        Returns:
+            int: The integer representing the winner advertiser
+        """
         r = random.random()
         if r < 0.05:
             arm = random.choice(list(bids.keys()))
@@ -93,12 +105,30 @@ class AdService:
             arm = max(arms, key = lambda k:k[1])
             return arm[0]
 
-    #A possible choice for payment function
+
     def __first_price(self, bids, winner):
+        """The method returns the bid of the winner, in order to compute the payment in a first price auction.
+
+        Args:
+            bids (dict): The dictionary containing a bid for each advertiser
+            winner (int): The integer representing the winner advertiser
+
+        Returns:
+            float: The payment of the winner in a first price auction
+        """
         return bids[winner]
 
-    #Another possible choice for the payment function
+
     def __second_price(self, bids, winner):
+        """The method returns the bid of the winner, in order to compute the payment in a second price auction.
+
+        Args:
+            bids (dict): The dictionary containing a bid for each advertiser
+            winner (int): The integer representing the winner advertiser
+
+        Returns:
+            float: The payment of the winner in a second price auction
+        """
         pay=-1
         for i in bids.keys():
             if i != winner and bids[i] > pay:
@@ -106,19 +136,33 @@ class AdService:
                 
         return pay
 
-    # MOCK-UP IMPLEMENTATION: It always announces that the winner will be the advertiser with the highest bid and it will pay the second highest bid
-    # takes the time step t and node u, returns the select function and the payment function 
+
     def __annouce(self, t, u):
+        """The method returns the two function the system uses in order to compute winner and payment.
+
+        Args:
+            t (int): The current timestep
+            u (int): The integer representing the node the system is evaluating
+
+        Returns:
+            func, func: The two select and payment functions respectively
+        """
         return self.__epsilon_greedy_bids, self.__second_price
 
-    #NOT IMPLEMENTED. Simply returns a random bid
-    # takes the time step t, 
-    # advertiser i, 
-    # node u, 
-    # select function, 
-    # payment function 
-    # returs the bid for i
+ 
     def __best_response(self, t, i, u, select, payment):
+        """The function computes the best response bid for the current auction. It is valid for each advertiser.
+
+        Args:
+            t (int): The current timestep
+            i (int): The integer representing the advertiser
+            u (int): The integer representing the node
+            select (func): The function that computes the winner advertiser
+            payment (func): The function that computes the payment for the current auction
+
+        Returns:
+            float: The bid subbmitted
+        """
         
         if t == 0:
             return self.rev[i]
@@ -139,13 +183,14 @@ class AdService:
         tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
         second = tmp_bids.pop(max(tmp_bids, key = lambda k : tmp_bids[k]))
 
-        if tmp_winner == i and tmp_pay == self.rev[i]: # FIRST PRICE
+        if tmp_winner == i and tmp_pay == self.rev[i]:
             return (self.rev[i] + second)/2
-        elif tmp_winner == i and tmp_pay < self.rev[i]: # SECOND PRICE
+        elif tmp_winner == i and tmp_pay < self.rev[i]:
             return (self.rev[i] + tmp_pay)/2
-        else: # NON DEVO MOSTRARMI, VALE PIÙ DI QUANTO LA VALUTO
+        else:
             return min(self.rev[i], second)
     
+
     def cascade(self, seed):
         """The method implements an Indipendent Cascade Model for Information Diffusion.
 
@@ -175,7 +220,18 @@ class AdService:
 
         return nodes_active
 
+
     def run(self, t, rctrs):
+        """The function computes for the time step t an estimate of clickthrough rates through the function ectrs, then computes the set of
+        seeds to be adopted in this time step through the function seed. It starts a cascade from these seeds, and collects the set of activated nodes
+
+        Args:
+            t (int): The current timestep
+            rctrs (func): The oracle with the real Clickthrough Rates
+
+        Returns:
+            float: The revenue obtained in the current timestep
+        """
         if t == 0:
             self.history = dict()
         rev = 0
@@ -200,9 +256,9 @@ class AdService:
                 rev += payment
             else:
                 self.history[t]["activated"][u]["clicked"] = False
-                payment = 0 # CREDO PERCHÈ NON CI SONO PAGAMENTI
+                payment = 0
 
             self.history[t]["activated"][u]["ad"] = ad
             self.history[t]["activated"][u]["payment"] = payment
-            
+
         return rev
