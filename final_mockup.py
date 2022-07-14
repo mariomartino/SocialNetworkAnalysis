@@ -2,8 +2,6 @@ import networkx as nx
 import random
 from collections import Counter
 
-import numpy as np
-
 from task2_hits import hits_hubs, hits_matrices
 
 class AdService:
@@ -104,19 +102,6 @@ class AdService:
                 arms.append((w, self.ectrs[u][w][0] * bids[w])) 
             arm = max(arms, key = lambda k:k[1])
             return arm[0]
-
-
-    def __first_price(self, bids, winner):
-        """The method returns the bid of the winner, in order to compute the payment in a first price auction.
-
-        Args:
-            bids (dict): The dictionary containing a bid for each advertiser
-            winner (int): The integer representing the winner advertiser
-
-        Returns:
-            float: The payment of the winner in a first price auction
-        """
-        return bids[winner]
 
 
     def __second_price(self, bids, winner):
@@ -257,7 +242,7 @@ class AdService:
             else:
                 self.history[t]["activated"][u]["clicked"] = False
                 payment = 0
-
+            
             self.history[t]["activated"][u]["ad"] = ad
             self.history[t]["activated"][u]["payment"] = payment
 

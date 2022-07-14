@@ -37,16 +37,9 @@ def oracle(u, i):
         return True
     return False
 
-print("Upload Input")
 G, p, rev, B, T, ctrs = input_data()
 ads=AdService(G, p, rev, B)
 revenue = 0
-print("Start")
-start = time.time()
 for step in range(T):
     revenue += ads.run(step, oracle)
-    print(step, revenue)
 
-print("End")
-print(time.time() - start)
-print(revenue)
