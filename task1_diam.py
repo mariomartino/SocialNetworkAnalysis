@@ -147,11 +147,13 @@ def optimized_diameter(G, percentage=0.2, directed=False):
 
 debug = True
 
-DIRECTED = False
-# file_name = "musae_facebook_edges.csv"
-file_name = "Cit-HepTh.txt"
-# file_name = "ca-sandi_auths.mtx"
-sep = "\t"
+debug = False
+
+file_name, sep, DIRECTED = "musae_facebook_edges.csv", ",", False
+file_name, sep, DIRECTED = "ca-sandi_auths.mtx", " ", False
+file_name, sep, DIRECTED = "email-Eu-core.txt", " ", True
+file_name, sep, DIRECTED = "Cit-HepTh.txt", "/t", True
+
 SAMPLE = 0.8
 JOBS = 6
 

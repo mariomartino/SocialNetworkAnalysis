@@ -109,11 +109,19 @@ def pagerank_parallel(G, jobs):
     result_dict[node] = pagerank[nodes[node]]
   return result_dict
 
-DIRECTED = False
+debug = False
+
+file_name, sep, DIRECTED = "musae_facebook_edges.csv", ",", False
+file_name, sep, DIRECTED = "ca-sandi_auths.mtx", " ", False
+file_name, sep, DIRECTED = "email-Eu-core.txt", " ", True
+file_name, sep, DIRECTED = "Cit-HepTh.txt", "/t", True
 
 if __name__ == "__main__":
 
-    G = load_node("email-Eu-core.txt", True, " ")
+    G = load_node(file_name, DIRECTED, sep)
+    if debug:
+        debug_info(G, DIRECTED)
+        
     if not DIRECTED:
       G = G.to_directed()
 

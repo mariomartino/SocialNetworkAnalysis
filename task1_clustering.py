@@ -225,13 +225,12 @@ def spectral(G, directed):
     solution.extend(active_clusters)
     return len(solution), [nx.average_clustering(G, nodes=solution[i]) for i in range(5)]
 
-debug = True
+debug = False
 
-DIRECTED = False
-# file_name = "musae_facebook_edges.csv"
-file_name = "email-Eu-core.txt"
-# file_name = "Cit-HepTh.txt"
-sep = " "
+file_name, sep, DIRECTED = "musae_facebook_edges.csv", ",", False
+file_name, sep, DIRECTED = "ca-sandi_auths.mtx", " ", False
+file_name, sep, DIRECTED = "email-Eu-core.txt", " ", True
+file_name, sep, DIRECTED = "Cit-HepTh.txt", "/t", True
 
 if __name__ == "__main__":
     G = load_node(file_name, DIRECTED, sep)

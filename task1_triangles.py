@@ -152,11 +152,13 @@ def num_triangles(G):
 
 debug = False
 
-DIRECTED = False
-file_name = "musae_facebook_edges.csv"
-# file_name = 'ca-sandi_auths.mtx'
-# file_name = 'email-Eu-core.txt'
-sep = ","
+debug = False
+
+file_name, sep, DIRECTED = "musae_facebook_edges.csv", ",", False
+file_name, sep, DIRECTED = "ca-sandi_auths.mtx", " ", False
+file_name, sep, DIRECTED = "email-Eu-core.txt", " ", True
+file_name, sep, DIRECTED = "Cit-HepTh.txt", "/t", True
+
 JOBS = 6
 
 if __name__ == "__main__":

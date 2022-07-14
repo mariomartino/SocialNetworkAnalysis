@@ -181,13 +181,22 @@ def hits_parallel(G, jobs):
     auth_dict[node] = auth[nodes[node]]
   return hubs_dict, auth_dict
 
-if __name__=="__main__":
+debug = False
 
-  G = load_node("email-Eu-core.txt", True, " ")
+file_name, sep, DIRECTED = "musae_facebook_edges.csv", ",", False
+file_name, sep, DIRECTED = "ca-sandi_auths.mtx", " ", False
+file_name, sep, DIRECTED = "email-Eu-core.txt", " ", True
+file_name, sep, DIRECTED = "Cit-HepTh.txt", "/t", True
 
-  hubs, auth = hits(G)
-  hubs_matrix, auth_matrix = hits_matrices(G)
-  hubs_parallel, auth_parallel = hits_parallel(G, 6)
-  hits_hubs(G, hubs)
-  hits_authority(G, auth)
-  hits_average(G, hubs, auth)
+if __name__ == "__main__":
+
+    G = load_node(file_name, DIRECTED, sep)
+    if debug:
+        debug_info(G, DIRECTED)
+
+    hubs, auth = hits(G)
+    hubs_matrix, auth_matrix = hits_matrices(G)
+    hubs_parallel, auth_parallel = hits_parallel(G, 6)
+    hits_hubs(G, hubs)
+    hits_authority(G, auth)
+    hits_average(G, hubs, auth)

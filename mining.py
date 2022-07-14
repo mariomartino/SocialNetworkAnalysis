@@ -1,10 +1,10 @@
-import time, matplotlib.pyplot as plt, math
+import time, matplotlib.pyplot as plt, math, numpy as np, networkx as nx
 from collections import Counter
 from task1_triangles import parallel_triangles
-from utils import *
+from utils import load_node, debug_info
 from task1_diam import parallel_diam
 from task2_centrality import degree
-from task1_clustering import spectral, two_means
+from task1_clustering import spectral
 
 DIRECTED = False
 DEBUG = False
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     plt.show()
 
     # OUTPUT: 
-    # a) PNG file
+    # a) PNG file reported in documentation
     
     # Lower and Upper Bound diameter
     eigenvalues = nx.laplacian_spectrum(G)

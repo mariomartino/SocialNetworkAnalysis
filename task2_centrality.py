@@ -101,12 +101,18 @@ def btw(G):
   """
   return betweenness(G)[1]
 
+debug = False
+
+file_name, sep, DIRECTED = "musae_facebook_edges.csv", ",", False
+file_name, sep, DIRECTED = "ca-sandi_auths.mtx", " ", False
+file_name, sep, DIRECTED = "email-Eu-core.txt", " ", True
+file_name, sep, DIRECTED = "Cit-HepTh.txt", "/t", True
 
 if __name__ == "__main__":
 
-    G = load_node("Cit-HepTh.txt", True, "\t")
-    debug_info(G, True)
-    G = load_node("net_3", False, sep = " ")
+    G = load_node(file_name, DIRECTED, sep)
+    if debug:
+        debug_info(G, DIRECTED)
     start_time = time.time()
     cen = degree(G)
     print("Degree:", time.time() - start_time)
